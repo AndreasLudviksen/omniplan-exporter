@@ -6,7 +6,7 @@ This project processes an XML file and extracts various elements to insert into 
 
 - `main.py`: The main module that processes the XML file and inserts data into the SQLite database.
 - `test_main.py`: Unit tests for the main module.
-- `Skatteetaten - Modernisert Utvikleropplevelse - Nedstrippet for Analyse og plattform.xml`: Sample XML file used for processing.
+- `omniplan.xml`: Sample XML file used for processing. (Not included in repo - based on MS Plan export from Omniplan)
 
 ## How It Works
 
@@ -37,7 +37,7 @@ The `main.py` script processes the provided XML file and inserts the data into a
 ```python
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('Skatteetaten - Modernisert Utvikleropplevelse - Nedstrippet for Analyse og plattform.xml')
+    process_xml('omniplan.xml')
     logging.info("Finished XML processing")
 ```
 

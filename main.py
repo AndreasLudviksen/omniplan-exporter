@@ -324,5 +324,5 @@ def insert_calendar_exceptions_into_db(calendar_exceptions, db_name):
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('Skatteetaten - Modernisert Utvikleropplevelse - Nedstrippet for Analyse og plattform.xml', 'omniplan.db')
+    process_xml('omniplan.xml', 'omniplan.db')
     logging.info("Finished XML processing")
