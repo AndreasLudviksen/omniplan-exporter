@@ -68,6 +68,8 @@ def process_xml(file_path, db_name):
 def extract_tasks(root):
     tasks = []
     seen_uids = set()
+    parent_stack = []
+
     for task in root.findall('./Tasks/Task'):
         uid = task.find('UID').text if task.find('UID') is not None else None
         if uid in seen_uids:
@@ -94,8 +96,14 @@ def extract_tasks(root):
         notes = task.find('Notes').text if task.find('Notes') is not None else None
         outline_level = int(task.find('OutlineLevel').text) if task.find('OutlineLevel') is not None else None
 
+        # Determine the parent UID based on the outline level
+        while parent_stack and parent_stack[-1][1] >= outline_level:
+            parent_stack.pop()
+        parent_uid = parent_stack[-1][0] if parent_stack else None
+        parent_stack.append((uid, outline_level))
+
         #logging.info(f"Extracted task: {name}, start: {start}")
-        tasks.append((uid, task_id, name, task_type, priority, start, finish, duration, work, actual_work, remaining_work, summary, milestone, notes, outline_level))
+        tasks.append((uid, task_id, name, outline_level, task_type, priority, start, finish, duration, work, actual_work, remaining_work, summary, milestone, notes, parent_uid))
 
     return tasks
 
@@ -189,6 +197,7 @@ def insert_tasks_into_db(tasks, db_name):
                 UID INTEGER PRIMARY KEY,
                 ID INTEGER,
                 Name TEXT,
+                OutlineLevel INTEGER,
                 Type INTEGER,
                 Priority INTEGER,
                 Start DATETIME,
@@ -200,13 +209,14 @@ def insert_tasks_into_db(tasks, db_name):
                 Summary INTEGER,
                 Milestone INTEGER,
                 Notes TEXT,
-                OutlineLevel INTEGER
+                ParentUID INTEGER,
+                FOREIGN KEY (ParentUID) REFERENCES tasks(UID)
             )
         ''')
         cursor.executemany('''
             INSERT INTO tasks (
-                UID, ID, Name, Type, Priority, Start, Finish, Duration, Work, ActualWork, RemainingWork, Summary, Milestone, Notes, OutlineLevel
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                UID, ID, Name, OutlineLevel, Type, Priority, Start, Finish, Duration, Work, ActualWork, RemainingWork, Summary, Milestone, Notes, ParentUID
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', tasks)
         logging.info(f"Inserted {len(tasks)} task records into the database.")
 
@@ -324,5 +334,5 @@ def insert_calendar_exceptions_into_db(calendar_exceptions, db_name):
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('omniplan.xml', 'omniplan.db')
+    process_xml('Skatteetaten - Modernisert Utvikleropplevelse - Nedstrippet for Analyse og plattform.xml', 'omniplan.db')
     logging.info("Finished XML processing")

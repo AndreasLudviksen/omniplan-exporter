@@ -129,5 +129,8 @@ dmypy.json
 # XML files
 *.xml
 
+# TXT files
+*.txt
+
 # Backup.py - used for backup scripts
 backup.py
