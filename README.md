@@ -5,8 +5,9 @@ This project processes an XML file and extracts various elements to insert into 
 ## Project Structure
 
 - `main.py`: The main module that processes the XML file and inserts data into the SQLite database.
-- `test_main.py`: Unit tests for the main module.
-- `omniplan.xml`: Sample XML file used for processing. (Not included in repo - based on MS Plan export from Omniplan)
+- `db_operations.py`: Module containing functions for database operations.
+- `reports/`: Directory containing scripts for generating reports from the database.
+  - `jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
 
 ## How It Works
 
@@ -22,14 +23,6 @@ This project processes an XML file and extracts various elements to insert into 
    python main.py
    ```
 
-## Running Unit Tests
-
-Unit tests are provided to ensure the correctness of the XML processing and database insertion functions. To run the tests, use the following command:
-
-```sh
-python -m unittest test_main.py
-```
-
 ## Example Usage
 
 The `main.py` script processes the provided XML file and inserts the data into a SQLite database named `omniplan.db`. The script logs the progress and any errors encountered during the process.
@@ -44,4 +37,4 @@ if __name__ == "__main__":
 ## License
 
 This project is licensed under the MIT License.
-````
+`````
