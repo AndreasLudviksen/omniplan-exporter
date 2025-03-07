@@ -80,5 +80,5 @@ def process_xml(file_path, db_name):
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('/Users/andreas.ludviksen/projects/omniplan-exporter/Skatteetaten - Modernisert Utvikleropplevelse - Nedstrippet for Analyse og plattform.xml', '/Users/andreas.ludviksen/projects/omniplan-exporter/omniplan.db')
+    process_xml('<XML Input>', '<SQLite database file>')
     logging.info("Finished XML processing")
