@@ -124,7 +124,6 @@ def get_tasks_by_outline(db_path, outline_level, milestone=0):
 def get_task_dependencies(db_path, milestone_id, dependency_type):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    print(f"get_task_dependencies. milestone_id: {milestone_id}. dependency_type: {dependency_type}")
     try:
         if dependency_type == 'predecessor':
             query = """
@@ -143,7 +142,6 @@ def get_task_dependencies(db_path, milestone_id, dependency_type):
         else:
             raise ValueError("Invalid dependency_type. Must be 'predecessor' or 'successor'.")
 
-        print(f"query: {query}.")
         cursor.execute(query, (milestone_id,))
         dependencies = cursor.fetchall()
         return [{'Name': dep[0]} for dep in dependencies]
