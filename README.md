@@ -24,14 +24,14 @@ This project processes an XML file and extracts various elements to insert into 
    ```sh
    python main.py
    ```
-3. **Run Report Scripts**: Execute the desired report script from the `reports/` directory to generate a report.
+3. **Run Report Scripts**: Execute the desired report script from the root of the project to generate a report.
    ```sh
-   python milestones_top_level.py
+   python reports/milestones_top_level.py
    ```
 
 ## Example Usage
 
-The `main.py` script processes the provided XML file and inserts the data into a SQLite database named `omniplan.db`. The script logs the progress and any errors encountered during the process.
+The `main.py` script processes the provided XML file and inserts the data into a SQLite database named `resources/omniplan.db`. The script logs the progress and any errors encountered during the process.
 
 ```python
 if __name__ == "__main__":

@@ -129,5 +129,5 @@ dmypy.json
 # XML files
 *.xml
 
-# Generated reports
-reports/generated-reports/
+# Generated resources
+resources/

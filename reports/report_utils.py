@@ -2,18 +2,19 @@ import sqlite3
 import os
 from datetime import datetime
 
-def get_parent_task(epos, db_name):
+def get_parent_task(epos, db_path):
     """
     Retrieves the parent task based on the epos parameter from the task_extended_attributes table.
 
     Args:
         epos (str): The epos number to search for.
-        db_name (str): The name of the SQLite database file.
+        db_path (str): The path to the SQLite database file.
 
     Returns:
         tuple: The parent task UID, name, notes, start date, and finish date, or None if not found.
     """
-    with sqlite3.connect(db_name) as conn:
+    print(f"Connecting to database: {db_path}")
+    with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
@@ -24,18 +25,18 @@ def get_parent_task(epos, db_name):
         result = cursor.fetchone()
         return result[:-1] if result else None
 
-def get_sub_tasks(parent_uid, db_name):
+def get_sub_tasks(parent_uid, db_path):
     """
     Retrieves the sub-tasks for a given parent task UID.
 
     Args:
         parent_uid (int): The UID of the parent task.
-        db_name (str): The name of the SQLite database file.
+        db_path (str): The path of the SQLite database file.
 
     Returns:
         list: A list of sub-tasks.
     """
-    with sqlite3.connect(db_name) as conn:
+    with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT UID, Name, Milestone, OutlineLevel, Start FROM tasks WHERE ParentUID = ?
@@ -92,21 +93,21 @@ def create_report_directory():
     """
     Creates the directory for storing generated reports.
     """
-    os.makedirs('generated-reports', exist_ok=True)
+    os.makedirs('resources/reports', exist_ok=True)
 
-def get_tasks_by_outline(db_name, outline_level, milestone=0):
+def get_tasks_by_outline(db_path, outline_level, milestone=0):
     """
     Retrieves tasks with the specified OutlineLevel and optional Milestone.
 
     Args:
-        db_name (str): The name of the SQLite database file.
+        db_path (str): The path of the SQLite database file.
         outline_level (int): The outline level of the tasks.
         milestone (int, optional): The milestone status of the tasks. Defaults to 0.
 
     Returns:
         list: A list of tuples containing the task name and finish date.
     """
-    with sqlite3.connect(db_name) as conn:
+    with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT Name, Finish FROM tasks WHERE OutlineLevel=? AND Milestone=?

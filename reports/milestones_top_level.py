@@ -4,17 +4,16 @@ import sqlite3
 from datetime import datetime
 from report_utils import create_report_directory, get_tasks_by_outline
 
-def generate_milestones_report(db_name='../omniplan.db'):
-    """
-    Generates a report listing tasks with OutlineLevel=1 and Milestone=1.
-    """
+def generate_milestones_top_level_report(db_path):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
     try:
-        milestones = get_tasks_by_outline(db_name, outline_level=1, milestone=1)
+        milestones = get_tasks_by_outline(db_path, outline_level=1, milestone=1)
         # Sort milestones by finish date
         milestones = sorted(milestones, key=lambda x: datetime.fromisoformat(x[1]).date() if x[1] else datetime.max)
 
         create_report_directory()
-        report_filename = os.path.join('generated-reports', "Milestones_top_level.md")
+        report_filename = os.path.join('resources/reports', "Milestones_top_level.md")
         with open(report_filename, 'w') as report_file:
             report_file.write("# Milepæler Modernisert Utvikleropplevelse\n\n")
             report_file.write("| Milepæl | Dato |\n")
@@ -30,6 +29,9 @@ def generate_milestones_report(db_name='../omniplan.db'):
 
     except sqlite3.Error as e:
         print(f"Database error: {e}")
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
-    generate_milestones_report()
+    db_path = os.path.join(os.path.dirname(__file__), '../resources/omniplan.db')  # Update the path to the database
+    generate_milestones_top_level_report(db_path)

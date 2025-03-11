@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import logging
 import sqlite3
+import os
 from db_operations import (
     insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
     insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
@@ -40,6 +41,9 @@ def process_xml(file_path, db_name):
         7. Extracts calendar exceptions and inserts them into the database.
     """
     try:
+        # Ensure the resources directory exists
+        os.makedirs(os.path.dirname(db_name), exist_ok=True)
+
         # Read and strip the namespace from the XML file
         with open(file_path, 'r') as file:
             xml_string = file.read()
@@ -86,5 +90,5 @@ def process_xml(file_path, db_name):
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('<XML Input>', '<SQLite database file>')
+    process_xml('<XML Input>', 'resources/omniplan.db')
     logging.info("Finished XML processing")
