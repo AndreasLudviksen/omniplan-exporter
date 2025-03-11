@@ -4,9 +4,9 @@ import logging
 def insert_tasks_into_db(tasks, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS tasks')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_tasks')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
+            CREATE TABLE IF NOT EXISTS omniplan_tasks (
                 UID INTEGER PRIMARY KEY,
                 ID INTEGER,
                 Name TEXT,
@@ -23,11 +23,11 @@ def insert_tasks_into_db(tasks, db_name):
                 Milestone INTEGER,
                 Notes TEXT,
                 ParentUID INTEGER,
-                FOREIGN KEY (ParentUID) REFERENCES tasks(UID)
+                FOREIGN KEY (ParentUID) REFERENCES omniplan_tasks(UID)
             )
         ''')
         cursor.executemany('''
-            INSERT INTO tasks (
+            INSERT INTO omniplan_tasks (
                 UID, ID, Name, OutlineLevel, Type, Priority, Start, Finish, Duration, Work, ActualWork, RemainingWork, Summary, Milestone, Notes, ParentUID
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', tasks)
@@ -36,9 +36,9 @@ def insert_tasks_into_db(tasks, db_name):
 def insert_resources_into_db(resources, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS resources')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_resources')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS resources (
+            CREATE TABLE IF NOT EXISTS omniplan_resources (
                 UID INTEGER PRIMARY KEY,
                 ID INTEGER,
                 Name TEXT,
@@ -49,7 +49,7 @@ def insert_resources_into_db(resources, db_name):
             )
         ''')
         cursor.executemany('''
-            INSERT INTO resources (
+            INSERT INTO omniplan_resources (
                 UID, ID, Name, Type, MaxUnits, CalendarUID, GroupName
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', resources)
@@ -58,9 +58,9 @@ def insert_resources_into_db(resources, db_name):
 def insert_assignments_into_db(assignments, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS assignments')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_assignments')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS assignments (
+            CREATE TABLE IF NOT EXISTS omniplan_assignments (
                 UID INTEGER PRIMARY KEY,
                 TaskUID INTEGER,
                 ResourceUID INTEGER,
@@ -72,12 +72,12 @@ def insert_assignments_into_db(assignments, db_name):
                 RemainingWork TEXT,
                 Start DATETIME,
                 Finish DATETIME,
-                FOREIGN KEY (TaskUID) REFERENCES tasks(UID),
-                FOREIGN KEY (ResourceUID) REFERENCES resources(UID)
+                FOREIGN KEY (TaskUID) REFERENCES omniplan_tasks(UID),
+                FOREIGN KEY (ResourceUID) REFERENCES omniplan_resources(UID)
             )
         ''')
         cursor.executemany('''
-            INSERT INTO assignments (
+            INSERT INTO omniplan_assignments (
                 UID, TaskUID, ResourceUID, Milestone, PercentWorkComplete, Units, Work, ActualWork, RemainingWork, Start, Finish
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', assignments)
@@ -86,9 +86,9 @@ def insert_assignments_into_db(assignments, db_name):
 def insert_calendars_into_db(calendars, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS calendars')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_calendars')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS calendars (
+            CREATE TABLE IF NOT EXISTS omniplan_calendars (
                 UID INTEGER PRIMARY KEY,
                 Name TEXT,
                 IsBaseCalendar INTEGER,
@@ -96,7 +96,7 @@ def insert_calendars_into_db(calendars, db_name):
             )
         ''')
         cursor.executemany('''
-            INSERT INTO calendars (
+            INSERT INTO omniplan_calendars (
                 UID, Name, IsBaseCalendar, BaseCalendarUID
             ) VALUES (?, ?, ?, ?)
         ''', calendars)
@@ -105,19 +105,19 @@ def insert_calendars_into_db(calendars, db_name):
 def insert_calendar_weekdays_into_db(calendar_weekdays, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS calendar_weekdays')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_calendar_weekdays')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS calendar_weekdays (
+            CREATE TABLE IF NOT EXISTS omniplan_calendar_weekdays (
                 CalendarUID INTEGER,
                 DayType INTEGER,
                 DayWorking TEXT,
                 FromTime TEXT,
                 ToTime TEXT,
-                FOREIGN KEY (CalendarUID) REFERENCES calendars(UID)
+                FOREIGN KEY (CalendarUID) REFERENCES omniplan_calendars(UID)
             )
         ''')
         cursor.executemany('''
-            INSERT INTO calendar_weekdays (
+            INSERT INTO omniplan_calendar_weekdays (
                 CalendarUID, DayType, DayWorking, FromTime, ToTime
             ) VALUES (?, ?, ?, ?, ?)
         ''', calendar_weekdays)
@@ -126,19 +126,19 @@ def insert_calendar_weekdays_into_db(calendar_weekdays, db_name):
 def insert_calendar_exceptions_into_db(calendar_exceptions, db_name):
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS calendar_exceptions')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_calendar_exceptions')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS calendar_exceptions (
+            CREATE TABLE IF NOT EXISTS omniplan_calendar_exceptions (
                 CalendarUID INTEGER,
                 ExceptionUID INTEGER,
                 Name TEXT,
                 FromDate TEXT,
                 ToDate TEXT,
-                FOREIGN KEY (CalendarUID) REFERENCES calendars(UID)
+                FOREIGN KEY (CalendarUID) REFERENCES omniplan_calendars(UID)
             )
         ''')
         cursor.executemany('''
-            INSERT INTO calendar_exceptions (
+            INSERT INTO omniplan_calendar_exceptions (
                 CalendarUID, ExceptionUID, Name, FromDate, ToDate
             ) VALUES (?, ?, ?, ?, ?)
         ''', calendar_exceptions)
@@ -154,17 +154,43 @@ def insert_extended_attributes_into_db(extended_attributes, db_name):
     """
     with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS task_extended_attributes')
+        cursor.execute('DROP TABLE IF EXISTS omniplan_task_extended_attributes')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS task_extended_attributes (
+            CREATE TABLE IF NOT EXISTS omniplan_task_extended_attributes (
                 TaskUID INTEGER,
                 FieldID INTEGER,
                 Value TEXT,
-                FOREIGN KEY (TaskUID) REFERENCES tasks(UID)
+                FOREIGN KEY (TaskUID) REFERENCES omniplan_tasks(UID)
             )
         ''')
         cursor.executemany('''
-            INSERT INTO task_extended_attributes (TaskUID, FieldID, Value)
+            INSERT INTO omniplan_task_extended_attributes (TaskUID, FieldID, Value)
             VALUES (?, ?, ?)
         ''', extended_attributes)
         logging.info(f"Inserted {len(extended_attributes)} extended attribute records into the database.")
+
+def insert_predecessor_links_into_db(predecessor_links, db_name):
+    """
+    Inserts predecessor links into the database.
+
+    Args:
+        predecessor_links (list): A list of predecessor link tuples.
+        db_name (str): The name of the SQLite database file.
+    """
+    with sqlite3.connect(db_name) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DROP TABLE IF EXISTS omniplan_predecessor_links')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS omniplan_predecessor_links (
+                TaskUID INTEGER,
+                PredecessorUID INTEGER,
+                Type INTEGER,
+                FOREIGN KEY (TaskUID) REFERENCES omniplan_tasks(UID),
+                FOREIGN KEY (PredecessorUID) REFERENCES omniplan_tasks(UID)
+            )
+        ''')
+        cursor.executemany('''
+            INSERT INTO omniplan_predecessor_links (TaskUID, PredecessorUID, Type)
+            VALUES (?, ?, ?)
+        ''', predecessor_links)
+        conn.commit()

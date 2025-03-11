@@ -4,7 +4,7 @@ from datetime import datetime
 
 def get_parent_task(epos, db_path):
     """
-    Retrieves the parent task based on the epos parameter from the task_extended_attributes table.
+    Retrieves the parent task based on the epos parameter from the omniplan_task_extended_attributes table.
 
     Args:
         epos (str): The epos number to search for.
@@ -13,13 +13,12 @@ def get_parent_task(epos, db_path):
     Returns:
         tuple: The parent task UID, name, notes, start date, and finish date, or None if not found.
     """
-    print(f"Connecting to database: {db_path}")
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
-            FROM tasks t
-            JOIN task_extended_attributes tea ON t.UID = tea.TaskUID
+            FROM omniplan_tasks t
+            JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID
             WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
         ''', (epos,))
         result = cursor.fetchone()
@@ -39,9 +38,17 @@ def get_sub_tasks(parent_uid, db_path):
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT UID, Name, Milestone, OutlineLevel, Start FROM tasks WHERE ParentUID = ?
+            SELECT UID, Name, Milestone, OutlineLevel, Start FROM omniplan_tasks WHERE ParentUID = ?
         ''', (parent_uid,))
-        return cursor.fetchall()
+        sub_tasks = cursor.fetchall()
+        
+        # Retrieve predecessor links
+        cursor.execute('''
+            SELECT PredecessorUID, Type FROM omniplan_predecessor_links WHERE TaskUID = ?
+        ''', (parent_uid,))
+        predecessor_links = cursor.fetchall()
+        
+        return sub_tasks, predecessor_links
 
 def write_report_header(report_file, epos, task_name, parent_note):
     """
@@ -67,7 +74,7 @@ def write_subtasks(cursor, report_file, parent_uid, level):
         level (int): The current outline level.
     """
     cursor.execute('''
-        SELECT UID, Name, Milestone, OutlineLevel, Start FROM tasks WHERE ParentUID = ?
+        SELECT UID, Name, Milestone, OutlineLevel, Start FROM omniplan_tasks WHERE ParentUID = ?
     ''', (parent_uid,))
     sub_tasks = cursor.fetchall()
 
@@ -105,11 +112,44 @@ def get_tasks_by_outline(db_path, outline_level, milestone=0):
         milestone (int, optional): The milestone status of the tasks. Defaults to 0.
 
     Returns:
-        list: A list of tuples containing the task name and finish date.
+        list: A list of tuples containing the task UID, name and finish date.
     """
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT Name, Finish FROM tasks WHERE OutlineLevel=? AND Milestone=?
+            SELECT UID, Name, Finish FROM omniplan_tasks WHERE OutlineLevel=? AND Milestone=?
         ''', (outline_level, milestone))
         return cursor.fetchall()
+
+def get_task_dependencies(db_path, milestone_id, dependency_type):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    print(f"get_task_dependencies. milestone_id: {milestone_id}. dependency_type: {dependency_type}")
+    try:
+        if dependency_type == 'predecessor':
+            query = """
+                SELECT t.Name
+                FROM omniplan_tasks t
+                JOIN omniplan_predecessor_links d ON t.UID = d.PredecessorUID
+                WHERE d.TaskUID = ?
+            """
+        elif dependency_type == 'successor':
+            query = """
+                SELECT t.Name
+                FROM omniplan_tasks t
+                JOIN omniplan_predecessor_links d ON t.UID = d.TaskUID
+                WHERE d.PredecessorUID = ?
+            """
+        else:
+            raise ValueError("Invalid dependency_type. Must be 'predecessor' or 'successor'.")
+
+        print(f"query: {query}.")
+        cursor.execute(query, (milestone_id,))
+        dependencies = cursor.fetchall()
+        return [{'Name': dep[0]} for dep in dependencies]
+
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return []
+    finally:
+        conn.close()

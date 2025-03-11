@@ -5,16 +5,16 @@ import os
 from db_operations import (
     insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
     insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
-    insert_extended_attributes_into_db  # Add this import
+    insert_extended_attributes_into_db, insert_predecessor_links_into_db
 )
 from xml_parse_operations import (
     extract_tasks, extract_resources, extract_assignments,
     extract_calendars, extract_calendar_weekdays, extract_calendar_exceptions,
-    extract_extended_attributes  # Add this import
+    extract_extended_attributes, extract_predecessor_links
 )
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 def strip_namespace(xml_string):
     return xml_string.replace(' xmlns="http://schemas.microsoft.com/project"', '')
@@ -79,6 +79,10 @@ def process_xml(file_path, db_name):
         # Extract and insert extended attributes
         extended_attributes = extract_extended_attributes(root)
         insert_extended_attributes_into_db(extended_attributes, db_name)
+
+        # Extract and insert predecessor links
+        predecessor_links = extract_predecessor_links(root)
+        insert_predecessor_links_into_db(predecessor_links, db_name)
 
     except ET.ParseError as e:
         logging.error(f"Error parsing XML: {e}")

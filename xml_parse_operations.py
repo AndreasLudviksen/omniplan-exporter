@@ -143,3 +143,22 @@ def extract_extended_attributes(root):
             value = ext_attr.find('Value').text if ext_attr.find('Value') is not None else None
             extended_attributes.append((task_uid, field_id, value))
     return extended_attributes
+
+def extract_predecessor_links(root):
+    """
+    Extracts predecessor links from the XML root element.
+
+    Args:
+        root (Element): The root element of the XML tree.
+
+    Returns:
+        list: A list of tuples containing predecessor link data.
+    """
+    predecessor_links = []
+    for task in root.findall('.//Task'):
+        task_uid = task.find('UID').text
+        for link in task.findall('PredecessorLink'):
+            predecessor_uid = link.find('PredecessorUID').text
+            link_type = link.find('Type').text
+            predecessor_links.append((task_uid, predecessor_uid, link_type))
+    return predecessor_links
