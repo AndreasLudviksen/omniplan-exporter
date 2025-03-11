@@ -3,11 +3,13 @@ import logging
 import sqlite3
 from db_operations import (
     insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
-    insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db
+    insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
+    insert_extended_attributes_into_db  # Add this import
 )
 from xml_parse_operations import (
     extract_tasks, extract_resources, extract_assignments,
-    extract_calendars, extract_calendar_weekdays, extract_calendar_exceptions
+    extract_calendars, extract_calendar_weekdays, extract_calendar_exceptions,
+    extract_extended_attributes  # Add this import
 )
 
 # Configure logging
@@ -69,6 +71,10 @@ def process_xml(file_path, db_name):
         # Extract and insert calendar exceptions
         calendar_exceptions = extract_calendar_exceptions(root)
         insert_calendar_exceptions_into_db(calendar_exceptions, db_name)
+
+        # Extract and insert extended attributes
+        extended_attributes = extract_extended_attributes(root)
+        insert_extended_attributes_into_db(extended_attributes, db_name)
 
     except ET.ParseError as e:
         logging.error(f"Error parsing XML: {e}")

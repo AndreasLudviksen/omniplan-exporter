@@ -143,3 +143,28 @@ def insert_calendar_exceptions_into_db(calendar_exceptions, db_name):
             ) VALUES (?, ?, ?, ?, ?)
         ''', calendar_exceptions)
         logging.info(f"Inserted {len(calendar_exceptions)} calendar exception records into the database.")
+
+def insert_extended_attributes_into_db(extended_attributes, db_name):
+    """
+    Inserts extended attributes into the database.
+
+    Args:
+        extended_attributes (list): A list of tuples containing extended attribute data.
+        db_name (str): The name of the SQLite database file.
+    """
+    with sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DROP TABLE IF EXISTS task_extended_attributes')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS task_extended_attributes (
+                TaskUID INTEGER,
+                FieldID INTEGER,
+                Value TEXT,
+                FOREIGN KEY (TaskUID) REFERENCES tasks(UID)
+            )
+        ''')
+        cursor.executemany('''
+            INSERT INTO task_extended_attributes (TaskUID, FieldID, Value)
+            VALUES (?, ?, ?)
+        ''', extended_attributes)
+        logging.info(f"Inserted {len(extended_attributes)} extended attribute records into the database.")

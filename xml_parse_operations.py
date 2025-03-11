@@ -124,3 +124,22 @@ def extract_calendar_exceptions(root):
             calendar_exceptions.append((calendar_uid, exception_uid, name, from_date, to_date))
 
     return calendar_exceptions
+
+def extract_extended_attributes(root):
+    """
+    Extracts extended attributes from the XML root element.
+
+    Args:
+        root (Element): The root element of the XML tree.
+
+    Returns:
+        list: A list of tuples containing extended attribute data.
+    """
+    extended_attributes = []
+    for task in root.findall('.//Task'):
+        task_uid = task.find('UID').text if task.find('UID') is not None else None
+        for ext_attr in task.findall('.//ExtendedAttribute'):
+            field_id = ext_attr.find('FieldID').text if ext_attr.find('FieldID') is not None else None
+            value = ext_attr.find('Value').text if ext_attr.find('Value') is not None else None
+            extended_attributes.append((task_uid, field_id, value))
+    return extended_attributes

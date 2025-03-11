@@ -2,23 +2,27 @@ import sqlite3
 import os
 from datetime import datetime
 
-def get_parent_task(note_string, db_name):
+def get_parent_task(epos, db_name):
     """
-    Retrieves the parent task that matches the given note string.
+    Retrieves the parent task based on the epos parameter from the task_extended_attributes table.
 
     Args:
-        note_string (str): The string to search for in the Notes column.
+        epos (str): The epos number to search for.
         db_name (str): The name of the SQLite database file.
 
     Returns:
-        tuple: The parent task UID and name, or None if not found.
+        tuple: The parent task UID, name, notes, start date, and finish date, or None if not found.
     """
     with sqlite3.connect(db_name) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT UID, Name, Notes FROM tasks WHERE LOWER(Notes) LIKE LOWER(?)
-        ''', (f"%{note_string}%",))
-        return cursor.fetchone()
+            SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
+            FROM tasks t
+            JOIN task_extended_attributes tea ON t.UID = tea.TaskUID
+            WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
+        ''', (epos,))
+        result = cursor.fetchone()
+        return result[:-1] if result else None
 
 def get_sub_tasks(parent_uid, db_name):
     """
@@ -38,19 +42,16 @@ def get_sub_tasks(parent_uid, db_name):
         ''', (parent_uid,))
         return cursor.fetchall()
 
-def write_report_header(report_file, note_string, task_name, parent_note):
+def write_report_header(report_file, epos, task_name, parent_note):
     """
     Writes the header for the report.
 
     Args:
         report_file (file object): The file object to write to.
-        note_string (str): The note string used for the report.
+        epos (str): The note string used for the report.
     """
-    # Skip the first line of parent_note
-    parent_note_lines = parent_note.split('\n')
-    parent_note = '\n'.join(parent_note_lines[1:])
 
-    report_file.write(f"Description for {note_string.upper()} - {task_name}\n\n")
+    report_file.write(f"Description for {epos.upper()} - {task_name}\n\n")
     report_file.write(f"Scope: \n{parent_note}\n\n")
     report_file.write(f"DoD:\n")
 
@@ -92,3 +93,22 @@ def create_report_directory():
     Creates the directory for storing generated reports.
     """
     os.makedirs('generated-reports', exist_ok=True)
+
+def get_tasks_by_outline(db_name, outline_level, milestone=0):
+    """
+    Retrieves tasks with the specified OutlineLevel and optional Milestone.
+
+    Args:
+        db_name (str): The name of the SQLite database file.
+        outline_level (int): The outline level of the tasks.
+        milestone (int, optional): The milestone status of the tasks. Defaults to 0.
+
+    Returns:
+        list: A list of tuples containing the task name and finish date.
+    """
+    with sqlite3.connect(db_name) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT Name, Finish FROM tasks WHERE OutlineLevel=? AND Milestone=?
+        ''', (outline_level, milestone))
+        return cursor.fetchall()
