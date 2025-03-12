@@ -2,53 +2,51 @@ import sqlite3
 import os
 from datetime import datetime
 
-def get_parent_task(epos, db_path):
+def get_parent_task(conn, epos):
     """
     Retrieves the parent task based on the epos parameter from the omniplan_task_extended_attributes table.
 
     Args:
         epos (str): The epos number to search for.
-        db_path (str): The path to the SQLite database file.
+        conn (sqlite3.Connection): The SQLite database connection.
 
     Returns:
         tuple: The parent task UID, name, notes, start date, and finish date, or None if not found.
     """
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
-            FROM omniplan_tasks t
-            JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID
-            WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
-        ''', (epos,))
-        result = cursor.fetchone()
-        return result[:-1] if result else None
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
+        FROM omniplan_tasks t
+        JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID
+        WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
+    ''', (epos,))
+    result = cursor.fetchone()
+    return result[:-1] if result else None
 
-def get_sub_tasks(parent_uid, db_path):
+def get_sub_tasks(conn, parent_uid):
     """
     Retrieves the sub-tasks for a given parent task UID.
 
     Args:
         parent_uid (int): The UID of the parent task.
-        db_path (str): The path of the SQLite database file.
+        conn (sqlite3.Connection): The SQLite database connection.
 
     Returns:
         list: A list of sub-tasks.
     """
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT UID, Name, Milestone, OutlineLevel, Start FROM omniplan_tasks WHERE ParentUID = ?
-        ''', (parent_uid,))
-        sub_tasks = cursor.fetchall()
-        
-        # Retrieve predecessor links
-        cursor.execute('''
-            SELECT PredecessorUID, Type FROM omniplan_predecessor_links WHERE TaskUID = ?
-        ''', (parent_uid,))
-        predecessor_links = cursor.fetchall()
-        
-        return sub_tasks, predecessor_links
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT UID, Name, Milestone, OutlineLevel, Start FROM omniplan_tasks WHERE ParentUID = ?
+    ''', (parent_uid,))
+    sub_tasks = cursor.fetchall()
+    
+    # Retrieve predecessor links
+    cursor.execute('''
+        SELECT PredecessorUID, Type FROM omniplan_predecessor_links WHERE TaskUID = ?
+    ''', (parent_uid,))
+    predecessor_links = cursor.fetchall()
+    
+    return sub_tasks, predecessor_links
 
 def write_report_header(report_file, epos, task_name, parent_note):
     """
@@ -102,27 +100,25 @@ def create_report_directory():
     """
     os.makedirs('resources/reports', exist_ok=True)
 
-def get_tasks_by_outline(db_path, outline_level, milestone=0):
+def get_tasks_by_outline(conn, outline_level, milestone=0):
     """
     Retrieves tasks with the specified OutlineLevel and optional Milestone.
 
     Args:
-        db_path (str): The path of the SQLite database file.
+        conn (sqlite3.Connection): The SQLite database connection.
         outline_level (int): The outline level of the tasks.
         milestone (int, optional): The milestone status of the tasks. Defaults to 0.
 
     Returns:
         list: A list of tuples containing the task UID, name and finish date.
     """
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT UID, Name, Finish FROM omniplan_tasks WHERE OutlineLevel=? AND Milestone=?
-        ''', (outline_level, milestone))
-        return cursor.fetchall()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT UID, Name, Finish FROM omniplan_tasks WHERE OutlineLevel=? AND Milestone=?
+    ''', (outline_level, milestone))
+    return cursor.fetchall()
 
-def get_task_dependencies(db_path, milestone_id, dependency_type):
-    conn = sqlite3.connect(db_path)
+def get_task_dependencies(conn, milestone_id, dependency_type):
     cursor = conn.cursor()
     try:
         if dependency_type == 'predecessor':
@@ -149,5 +145,3 @@ def get_task_dependencies(db_path, milestone_id, dependency_type):
     except sqlite3.Error as e:
         print(f"Database error: {e}")
         return []
-    finally:
-        conn.close()

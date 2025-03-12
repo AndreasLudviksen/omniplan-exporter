@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
 import logging
-import sqlite3
 import os
 from db_operations import (
-    insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
+    create_connection, insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
     insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
     insert_extended_attributes_into_db, insert_predecessor_links_into_db
 )
@@ -52,37 +51,40 @@ def process_xml(file_path, db_name):
         # Parse the XML file
         root = ET.fromstring(xml_string)
 
+        # Create a database connection
+        conn = create_connection(db_name)
+
         # Extract and insert tasks
         tasks = extract_tasks(root)
-        insert_tasks_into_db(tasks, db_name)
+        insert_tasks_into_db(conn, tasks)
 
         # Extract and insert resources
         resources = extract_resources(root)
-        insert_resources_into_db(resources, db_name)
+        insert_resources_into_db(conn, resources)
 
         # Extract and insert assignments
         assignments = extract_assignments(root)
-        insert_assignments_into_db(assignments, db_name)
+        insert_assignments_into_db(conn, assignments)
 
         # Extract and insert calendars
         calendars = extract_calendars(root)
-        insert_calendars_into_db(calendars, db_name)
+        insert_calendars_into_db(conn, calendars)
 
         # Extract and insert calendar weekdays
         calendar_weekdays = extract_calendar_weekdays(root)
-        insert_calendar_weekdays_into_db(calendar_weekdays, db_name)
+        insert_calendar_weekdays_into_db(conn, calendar_weekdays)
 
         # Extract and insert calendar exceptions
         calendar_exceptions = extract_calendar_exceptions(root)
-        insert_calendar_exceptions_into_db(calendar_exceptions, db_name)
+        insert_calendar_exceptions_into_db(conn, calendar_exceptions)
 
         # Extract and insert extended attributes
         extended_attributes = extract_extended_attributes(root)
-        insert_extended_attributes_into_db(extended_attributes, db_name)
+        insert_extended_attributes_into_db(conn, extended_attributes)
 
         # Extract and insert predecessor links
         predecessor_links = extract_predecessor_links(root)
-        insert_predecessor_links_into_db(predecessor_links, db_name)
+        insert_predecessor_links_into_db(conn, predecessor_links)
 
     except ET.ParseError as e:
         logging.error(f"Error parsing XML: {e}")
