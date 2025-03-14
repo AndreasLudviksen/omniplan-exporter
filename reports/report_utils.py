@@ -11,17 +11,17 @@ def get_parent_task(conn, epos):
         conn (sqlite3.Connection): The SQLite database connection.
 
     Returns:
-        tuple: The parent task UID, name, notes, start date, and finish date, or None if not found.
+        tuple: The parent task UID, name, notes, start date, finish date, percent complete, work, and epos value, or None if not found.
     """
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, tea.Value
+        SELECT t.UID, t.Name, t.Notes, t.Start, t.Finish, t.PercentComplete, t.Work, tea.Value
         FROM omniplan_tasks t
         JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID
         WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
     ''', (epos,))
     result = cursor.fetchone()
-    return result[:-1] if result else None
+    return result if result else None
 
 def get_sub_tasks(conn, parent_uid):
     """
@@ -145,3 +145,31 @@ def get_task_dependencies(conn, milestone_id, dependency_type):
     except sqlite3.Error as e:
         print(f"Database error: {e}")
         return []
+
+def get_assignments_for_task_and_subtasks(conn, task_uid):
+    """
+    Retrieves assignments for a task and its subtasks.
+
+    Args:
+        conn (sqlite3.Connection): The SQLite database connection.
+        task_uid (int): The UID of the task.
+
+    Returns:
+        list: A list of assignments.
+    """
+    cursor = conn.cursor()
+    cursor.execute('''
+        WITH RECURSIVE sub_tasks(UID, Name) AS (
+            SELECT UID, Name FROM omniplan_tasks WHERE UID = ?
+            UNION ALL
+            SELECT t.UID, t.Name FROM omniplan_tasks t
+            INNER JOIN sub_tasks st ON t.ParentUID = st.UID
+        )
+        SELECT a.TaskUID, t.Name, r.Name, a.PercentWorkComplete, a.Units, a.Start, a.Finish, 
+               COALESCE(tea.Value, 'None') AS Value, a.Work, a.ActualWork, a.RemainingWork
+        FROM omniplan_assignments a
+        INNER JOIN sub_tasks t ON a.TaskUID = t.UID
+        INNER JOIN omniplan_resources r ON a.ResourceUID = r.UID
+        LEFT JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID AND tea.FieldID = 188743731
+    ''', (task_uid,))
+    return cursor.fetchall()

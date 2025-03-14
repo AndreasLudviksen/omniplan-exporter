@@ -8,41 +8,15 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from xml_parse_operations import extract_tasks
+from db_operations import create_tasks_table, create_predecessor_links_table
 
 class TestXMLParseOperations(unittest.TestCase):
     def setUp(self):
         self.conn = sqlite3.connect(':memory:')
         self.conn.execute('PRAGMA foreign_keys = ON')
-        self.conn.execute('''
-            CREATE TABLE IF NOT EXISTS omniplan_tasks (
-                UID INTEGER PRIMARY KEY,
-                ID INTEGER,
-                Name TEXT,
-                OutlineLevel INTEGER,
-                Type INTEGER,
-                Priority INTEGER,
-                Start DATETIME,
-                Finish DATETIME,
-                Duration TEXT,
-                Work TEXT,
-                ActualWork TEXT,
-                RemainingWork TEXT,
-                Summary INTEGER,
-                Milestone INTEGER,
-                Notes TEXT,
-                ParentUID INTEGER,
-                FOREIGN KEY (ParentUID) REFERENCES omniplan_tasks(UID)
-            )
-        ''')
-        self.conn.execute('''
-            CREATE TABLE IF NOT EXISTS omniplan_predecessor_links (
-                TaskUID INTEGER,
-                PredecessorUID INTEGER,
-                Type INTEGER,
-                FOREIGN KEY (TaskUID) REFERENCES omniplan_tasks(UID),
-                FOREIGN KEY (PredecessorUID) REFERENCES omniplan_tasks(UID)
-            )
-        ''')
+        cursor = self.conn.cursor()
+        create_tasks_table(cursor)
+        create_predecessor_links_table(cursor)
 
     def tearDown(self):
         self.conn.close()

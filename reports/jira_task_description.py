@@ -15,7 +15,7 @@ def generate_report(epos, db_path):
             parent_uid, parent_name, parent_note, start_date, finish_date = parent_task
 
             create_report_directory()
-            report_filename = os.path.join('resources/reports', f"{epos.upper()}.txt")
+            report_filename = os.path.join('resources/reports', f"jira-task-description-{epos.upper()}.txt")
             with open(report_filename, 'w') as report_file:
                 write_report_header(report_file, epos, parent_name, parent_note)
                 write_subtasks(conn.cursor(), report_file, parent_uid, 1)

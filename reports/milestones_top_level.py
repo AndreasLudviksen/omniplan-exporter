@@ -11,7 +11,7 @@ def generate_milestones_top_level_report(db_path):
         milestones = sorted(milestones, key=lambda x: datetime.fromisoformat(x[2]).date() if x[2] else datetime.max)
 
         create_report_directory()
-        report_filename = os.path.join('resources/reports', "Milestones_top_level.md")
+        report_filename = os.path.join('resources/reports', "milestones-top-level.md")
         with open(report_filename, 'w') as report_file:
             report_file.write("# Milepæler Modernisert Utvikleropplevelse\n\n")
             report_file.write("| Milepæl | Dato | Forutsetter | Muliggjør |\n")

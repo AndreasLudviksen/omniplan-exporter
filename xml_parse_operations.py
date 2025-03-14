@@ -32,6 +32,7 @@ def extract_tasks(root):
         milestone = int(task.find('Milestone').text) if task.find('Milestone') is not None else None
         notes = task.find('Notes').text if task.find('Notes') is not None else None
         outline_level = int(task.find('OutlineLevel').text) if task.find('OutlineLevel') is not None else None
+        percent_complete = float(task.find('PercentComplete').text) if task.find('PercentComplete') is not None else None
 
         # Determine the parent UID based on the outline level
         while parent_stack and parent_stack[-1][1] >= outline_level:
@@ -40,7 +41,7 @@ def extract_tasks(root):
         parent_stack.append((uid, outline_level))
 
         #logging.info(f"Extracted task: {name}, start: {start}")
-        tasks.append((uid, task_id, name, outline_level, task_type, priority, start, finish, duration, work, actual_work, remaining_work, summary, milestone, notes, parent_uid))
+        tasks.append((uid, task_id, name, outline_level, task_type, priority, start, finish, duration, work, actual_work, remaining_work, summary, milestone, notes, parent_uid, percent_complete))
 
     return tasks
 
