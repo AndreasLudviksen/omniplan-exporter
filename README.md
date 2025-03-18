@@ -10,6 +10,7 @@ This project processes an XML file and extracts various elements to insert into 
 - `reports/`: Directory containing scripts for generating reports from the database.
   - `jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
   - `milestones_top_level.py`: Generates a report listing top-level milestones.
+  - `task_assignments_and_status.py`: Generates a report summarizing task assignments and their statuses.
   - `report_utils.py`: Utility functions used by the report generation scripts.
 - `tests/`: Directory containing unit tests for the project.
 

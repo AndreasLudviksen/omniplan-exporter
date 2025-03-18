@@ -134,3 +134,5 @@ resources/
 
 # Mac custom attributes
 .DS_Store
+
+.idea
