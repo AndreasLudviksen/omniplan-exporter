@@ -1,7 +1,8 @@
+import sqlite3
 import xml.etree.ElementTree as ET
 import logging
 import os
-from db_operations import (
+from db_write_operations import (
     create_connection, insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
     insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
     insert_extended_attributes_into_db, insert_predecessor_links_into_db

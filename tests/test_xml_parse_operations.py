@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from xml_parse_operations import extract_tasks
-from db_operations import create_tasks_table, create_predecessor_links_table
+from db_write_operations import create_tasks_table, create_predecessor_links_table
 
 class TestXMLParseOperations(unittest.TestCase):
     def setUp(self):

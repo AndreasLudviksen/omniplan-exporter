@@ -6,7 +6,7 @@ import os
 # Add the project directory to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from db_operations import (
+from db_write_operations import (
     create_connection, insert_tasks_into_db, insert_assignments_into_db,
     create_tasks_table, create_resources_table, create_assignments_table, create_predecessor_links_table
 )

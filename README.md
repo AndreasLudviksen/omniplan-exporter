@@ -5,13 +5,13 @@ This project processes an XML file and extracts various elements to insert into 
 ## Project Structure
 
 - `main.py`: The main module that processes the XML file and inserts data into the SQLite database.
-- `db_operations.py`: Module containing functions for database operations.
+- `db_write_operations.py`: Module containing functions for database write operations.
 - `xml_parse_operations.py`: Module containing functions for parsing XML data.
+- `db_read_operations.py`: Module containing functions for reading data from the database.
 - `reports/`: Directory containing scripts for generating reports from the database.
-  - `jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
-  - `milestones_top_level.py`: Generates a report listing top-level milestones.
-  - `task_assignments_and_status.py`: Generates a report summarizing task assignments and their statuses.
-  - `report_utils.py`: Utility functions used by the report generation scripts.
+  - `report_jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
+  - `report_milestones_top_level.py`: Generates a report listing top-level milestones.
+  - `report_task_assignments_and_status.py`: Generates a report summarizing task assignments and their statuses.
 - `tests/`: Directory containing unit tests for the project.
 
 ## How It Works
@@ -33,7 +33,7 @@ This project processes an XML file and extracts various elements to insert into 
    ```
 3. **Run Report Scripts**: Execute the desired report script from the root of the project to generate a report.
    ```sh
-   python reports/milestones_top_level.py
+   python reports/report_milestones_top_level.py
    ```
 
 ## Running Tests

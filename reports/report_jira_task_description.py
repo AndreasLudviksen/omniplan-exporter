@@ -2,9 +2,13 @@ import sys
 import os
 import sqlite3
 from datetime import datetime
-from report_utils import get_parent_task, write_report_header, write_subtasks, create_report_directory
 
-def generate_report(epos, db_path):
+# Add the project directory to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from db_read_operations import get_parent_task, write_report_header, write_subtasks, create_report_directory
+
+def generate_report(epos, db_path, output_dir='resources/reports'):
     """
     Generates a report for the task that matches the given note string, including nested sub-tasks.
     """
@@ -15,7 +19,7 @@ def generate_report(epos, db_path):
             parent_uid, parent_name, parent_note, start_date, finish_date, _, _, _ = parent_task
 
             create_report_directory()
-            report_filename = os.path.join('resources/reports', f"jira-task-description-{epos.upper()}.txt")
+            report_filename = os.path.join(output_dir, f"jira-task-description-{epos.upper()}.txt")
             with open(report_filename, 'w') as report_file:
                 write_report_header(report_file, epos, parent_name, parent_note)
                 write_subtasks(conn.cursor(), report_file, parent_uid, 1)
@@ -34,8 +38,11 @@ def generate_report(epos, db_path):
 
 if __name__ == "__main__":
     db_path = os.path.join(os.path.dirname(__file__), '../resources/omniplan.db')  # Update the path to the database
-    if len(sys.argv) != 2:
-        print("Usage: python generate_description_for_task_with_assignments.py <epos>")
+    output_dir = 'resources/reports'
+    if len(sys.argv) < 2:
+        print("Usage: python report_jira_task_description.py <epos> [output_dir]")
     else:
         epos = sys.argv[1]
-        generate_report(epos, db_path)
+        if len(sys.argv) > 2:
+            output_dir = sys.argv[2]
+        generate_report(epos, db_path, output_dir)

@@ -6,8 +6,8 @@ import os
 # Add the project directory to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from reports.report_utils import get_parent_task, get_sub_tasks
-from db_operations import (
+from db_read_operations import get_parent_task, get_sub_tasks
+from db_write_operations import (
     create_tasks_table, create_extended_attributes_table, create_predecessor_links_table,
     create_resources_table, create_assignments_table
 )
