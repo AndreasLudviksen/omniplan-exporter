@@ -12,7 +12,7 @@ def generate_report(epos, db_path):
         conn = sqlite3.connect(db_path)
         parent_task = get_parent_task(conn, epos)
         if parent_task:
-            parent_uid, parent_name, parent_note, start_date, finish_date = parent_task
+            parent_uid, parent_name, parent_note, start_date, finish_date, _, _, _ = parent_task
 
             create_report_directory()
             report_filename = os.path.join('resources/reports', f"jira-task-description-{epos.upper()}.txt")
@@ -20,9 +20,6 @@ def generate_report(epos, db_path):
                 write_report_header(report_file, epos, parent_name, parent_note)
                 write_subtasks(conn.cursor(), report_file, parent_uid, 1)
                 
-                # Add start and finish dates to the report (only date part)
-                start_date = datetime.fromisoformat(start_date).date() if start_date else "N/A"
-                finish_date = datetime.fromisoformat(finish_date).date() if finish_date else "N/A"
                 report_file.write(f"\nDates:\nStart Date: {start_date}\nFinish Date: {finish_date}\n")
                 
                 # Add the generation date at the end of the report

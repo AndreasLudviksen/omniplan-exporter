@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import isodate
 from datetime import datetime
 
 def get_parent_task(conn, epos):
@@ -21,7 +22,12 @@ def get_parent_task(conn, epos):
         WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
     ''', (epos,))
     result = cursor.fetchone()
-    return result if result else None
+    if result:
+        uid, name, notes, start, finish, percent_complete, work, epos_value = result
+        start_date = datetime.fromisoformat(start).date() if start else "N/A"
+        finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
+        return uid, name, notes, start_date, finish_date, percent_complete, work, epos_value
+    return None
 
 def get_sub_tasks(conn, parent_uid):
     """
@@ -146,30 +152,96 @@ def get_task_dependencies(conn, milestone_id, dependency_type):
         print(f"Database error: {e}")
         return []
 
-def get_assignments_for_task_and_subtasks(conn, task_uid):
+def get_sub_tasks_and_assignments(conn, task_uid):
     """
-    Retrieves assignments for a task and its subtasks.
+    Retrieves sub-tasks and assignments for the parent-task.
+
+    Args:
+        conn (sqlite3.Connection): The SQLite database connection.
+        task_uid (int): The UID of the parent-task.
+
+    Returns:
+        list: A list of sub-tasks and assignments.
+    """
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT UID, Name, Work, PercentComplete, Start, Finish, Summary
+        FROM omniplan_tasks
+        WHERE ParentUID = ?
+    ''', (task_uid,))
+    sub_tasks = cursor.fetchall()
+
+    all_sub_tasks = []
+    for sub_task in sub_tasks:
+        uid, name, work, percent_complete, start, finish, summary = sub_task
+        if not summary:
+            work_days = convert_to_work_days(work)
+            start_date = datetime.fromisoformat(start).date() if start else "N/A"
+            finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
+            all_sub_tasks.append((uid, name, work_days, percent_complete, start_date, finish_date))
+        all_sub_tasks.extend(get_sub_tasks_and_assignments(conn, uid))
+
+    return all_sub_tasks
+
+def convert_to_work_days(duration):
+    """
+    Converts duration to number of 7.5 hours working days.
+
+    Args:
+        duration (str): The duration string.
+
+    Returns:
+        int: The number of working days.
+    """
+    if not duration:
+        return "N/A"
+    try:
+        duration_timedelta = isodate.parse_duration(duration)
+        work_days = duration_timedelta.total_seconds() / (7.5 * 3600)
+        return round(work_days)
+    except (isodate.ISO8601Error, TypeError):
+        return "N/A"
+
+def get_jira_link(conn, task_uid):
+    """
+    Retrieves the Jira link for a given task UID.
 
     Args:
         conn (sqlite3.Connection): The SQLite database connection.
         task_uid (int): The UID of the task.
 
     Returns:
-        list: A list of assignments.
+        str: The Jira link or None if not found.
     """
     cursor = conn.cursor()
     cursor.execute('''
-        WITH RECURSIVE sub_tasks(UID, Name) AS (
-            SELECT UID, Name FROM omniplan_tasks WHERE UID = ?
-            UNION ALL
-            SELECT t.UID, t.Name FROM omniplan_tasks t
-            INNER JOIN sub_tasks st ON t.ParentUID = st.UID
-        )
-        SELECT a.TaskUID, t.Name, r.Name, a.PercentWorkComplete, a.Units, a.Start, a.Finish, 
-               COALESCE(tea.Value, 'None') AS Value, a.Work, a.ActualWork, a.RemainingWork
-        FROM omniplan_assignments a
-        INNER JOIN sub_tasks t ON a.TaskUID = t.UID
-        INNER JOIN omniplan_resources r ON a.ResourceUID = r.UID
-        LEFT JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID AND tea.FieldID = 188743731
+        SELECT Value
+        FROM omniplan_task_extended_attributes
+        WHERE TaskUID = ? AND FieldID = 188743731
     ''', (task_uid,))
-    return cursor.fetchall()
+    result = cursor.fetchone()
+    if result:
+        jira = result[0]
+        return f"[{jira}](https://jira.sits.no/browse/{jira})"
+    return None
+
+def get_assignments(conn, task_uid):
+    """
+    Fetches assignments for a given task UID.
+
+    Args:
+        conn (sqlite3.Connection): The SQLite database connection.
+        task_uid (int): The UID of the task.
+
+    Returns:
+        list: A list of tuples containing the resource name and units.
+    """
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT a.ResourceUID, a.Units, r.Name
+        FROM omniplan_assignments a
+        JOIN omniplan_resources r ON a.ResourceUID = r.UID
+        WHERE a.TaskUID = ?
+    ''', (task_uid,))
+    assignments = cursor.fetchall()
+    return [(resource_name, units) for resource_uid, units, resource_name in assignments]

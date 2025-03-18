@@ -1,9 +1,8 @@
 import sys
 import os
 import sqlite3
-from report_utils import create_report_directory, get_parent_task, get_assignments_for_task_and_subtasks
+from report_utils import create_report_directory, get_parent_task, get_sub_tasks_and_assignments, write_report_header, convert_to_work_days, get_jira_link, get_assignments
 from datetime import datetime, timedelta
-import isodate
 
 def generate_assignments_report(conn, epos):
     parent_task = get_parent_task(conn, epos)
@@ -11,48 +10,38 @@ def generate_assignments_report(conn, epos):
         print(f"No task found for epos: {epos}")
         return
 
-    task_uid, task_name, _, start, finish, percent_complete, work, parent_value = parent_task
-    assignments = get_assignments_for_task_and_subtasks(conn, task_uid)
-
     create_report_directory()
     report_filename = os.path.join('resources/reports', f"task-assignments-and-status-{epos.upper()}.md")
     with open(report_filename, 'w') as report_file:
-        report_file.write(f"# Assignments Report for {epos}\n\n")
-        report_file.write("\n")
-        report_file.write("| Jira | Task Name | Complete | Effort |\n")
-        report_file.write("| --- | --- | --- | --- |\n")
+        task_uid, task_name, task_notes, task_start, task_finish, task_percent_complete, task_work, task_epos = parent_task
+        jira_link = get_jira_link(conn, task_uid)
+        report_file.write(f"# Assignments and status for {jira_link}\n\n")
+        report_file.write("| Jira | Task Name | Effort | Complete | Start | Finish |\n")
+        report_file.write("|------|-----------|--------|----------|-------|--------|\n")
+        report_file.write(f"| {jira_link} | {task_name} | {convert_to_work_days(task_work)}d | {task_percent_complete or 0}% | {task_start} | {task_finish} |\n\n")
         
-        # Write parent task
-        parent_jira_link = f"https://jira.sits.no/browse/{parent_value}" if parent_value != 'None' else "N/A"
-        parent_work_days = convert_to_work_days(work)
-        report_file.write(f"| {parent_jira_link} | {task_name} | {percent_complete}% | {parent_work_days} d |\n")
-        
-        report_file.write("\n")
-        report_file.write("| Jira | Task Name | Resource | Assignment |Effort | Complete | Start | Finish |\n")
-        report_file.write("| --- | --- | --- | --- | --- | --- | --- | --- |\n")
-        
-        for assignment in assignments:
-            task_uid, task_name, resource_name, percent_work_complete, units, start, finish, value, work, actual_work, remaining_work = assignment
-            start_date = start.split('T')[0] if start else "N/A"
-            finish_date = finish.split('T')[0] if finish else "N/A"
-            jira_link = f"https://jira.sits.no/browse/{value}" if value != 'None' else "N/A"
-            percent_work_complete = percent_work_complete if percent_work_complete is not None else 0
-            work_days = convert_to_work_days(work)
-            report_file.write(f"| {jira_link} | {task_name} | {resource_name} | {units:.2f} | {work_days} d | {percent_work_complete}% | {start_date} | {finish_date} |\n")
+        report_file.write(f"## Sub-tasks\n\n")
+        sub_tasks = get_sub_tasks_and_assignments(conn, task_uid)
+        report_file.write("| Jira | Task Name | Effort | Complete | Start | Finish | Assignments |\n")
+        report_file.write("|------|-----------|--------|----------|-------|--------|-------------|\n")
+        for sub_task in sub_tasks:
+            sub_task_uid, name, work_days, percent_complete, start_date, finish_date = sub_task
+            jira_link = get_jira_link(conn, sub_task_uid)
+            report_file.write(f"| {jira_link} | {name} | {work_days}d | {percent_complete or 0}% | {start_date} | {finish_date} | ")
 
-        report_file.write(f"\nDenne rapporten ble generert {datetime.now().date()}")
+            # Fetch assignments for the sub-task
+            assignments = get_assignments(conn, sub_task_uid)
+            if assignments:
+                assignment_list = ", ".join([f"{resource_name} ({units * 100:.1f}%)" for resource_name, units in assignments])
+                report_file.write(f"{assignment_list}")
+            else:
+                report_file.write("N/A")
+            report_file.write(" |\n")
+
+        report_file.write(f"\nDenne rapporten ble generert {datetime.now().date()}\n")
 
     print(f"Report generated: {report_filename}")
 
-def convert_to_work_days(duration):
-    if not duration:
-        return "N/A"
-    try:
-        duration_timedelta = isodate.parse_duration(duration)
-        work_days = duration_timedelta.total_seconds() / (7.5 * 3600)
-        return round(work_days)
-    except (isodate.ISO8601Error, TypeError):
-        return "N/A"
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
