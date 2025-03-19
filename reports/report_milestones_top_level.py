@@ -21,9 +21,9 @@ def generate_milestones_top_level_report(db_path, output_dir='resources/reports'
             report_file.write("| Milepæl | Dato | Forutsetter | Muliggjør |\n")
             report_file.write("|-----------|------|-------------|-----------|\n")
             for milestone in milestones:
-                uid, name, finish = milestone
+                uid, name, finish, _, _, _ = milestone
                 finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
-                
+                                
                 dependencies = get_task_dependencies(conn, milestone_id=uid, dependency_type='predecessor')
                 dependents = get_task_dependencies(conn, milestone_id=uid, dependency_type='successor')
                 

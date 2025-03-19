@@ -116,11 +116,13 @@ def get_tasks_by_outline(conn, outline_level, milestone=0):
         milestone (int, optional): The milestone status of the tasks. Defaults to 0.
 
     Returns:
-        list: A list of tuples containing the task UID, name and finish date.
+        list: A list of tuples containing the task UID, name, finish date, start date, work, and actual work.
     """
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT UID, Name, Finish FROM omniplan_tasks WHERE OutlineLevel=? AND Milestone=?
+        SELECT UID, Name, Finish, Start, Work, ActualWork
+        FROM omniplan_tasks
+        WHERE OutlineLevel=? AND Milestone=?
     ''', (outline_level, milestone))
     return cursor.fetchall()
 
@@ -202,16 +204,16 @@ def convert_to_work_days(duration):
     except (isodate.ISO8601Error, TypeError):
         return "N/A"
 
-def get_jira_link(conn, task_uid):
+def get_jira_number(conn, task_uid):
     """
-    Retrieves the Jira link for a given task UID.
+    Retrieves the Jira number for a given task UID.
 
     Args:
         conn (sqlite3.Connection): The SQLite database connection.
         task_uid (int): The UID of the task.
 
     Returns:
-        str: The Jira link or None if not found.
+        str: The Jira number or None if not found.
     """
     cursor = conn.cursor()
     cursor.execute('''
@@ -220,9 +222,22 @@ def get_jira_link(conn, task_uid):
         WHERE TaskUID = ? AND FieldID = 188743731
     ''', (task_uid,))
     result = cursor.fetchone()
-    if result:
-        jira = result[0]
-        return f"[{jira}](https://jira.sits.no/browse/{jira})"
+    return result[0] if result else None
+
+def get_jira_link(conn, task_uid):
+    """
+    Constructs the Jira link for a given task UID using the Jira number.
+
+    Args:
+        conn (sqlite3.Connection): The SQLite database connection.
+        task_uid (int): The UID of the task.
+
+    Returns:
+        str: The Jira link or None if the Jira number is not found.
+    """
+    jira_number = get_jira_number(conn, task_uid)
+    if jira_number:
+        return f"[{jira_number}](https://jira.sits.no/browse/{jira_number})"
     return None
 
 def get_assignments(conn, task_uid):
