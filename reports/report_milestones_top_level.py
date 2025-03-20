@@ -1,9 +1,12 @@
 import sys
 import os
 import sqlite3
+import logging
 from datetime import datetime
 
 from omniplan_exporter.db import operations
+
+logger = logging.getLogger(__name__)
 
 def generate_milestones_top_level_report(db_path, output_dir='resources/reports'):
     conn = sqlite3.connect(db_path)
@@ -31,14 +34,15 @@ def generate_milestones_top_level_report(db_path, output_dir='resources/reports'
             
             report_file.write(f"\nDenne rapporten ble generert {datetime.now().date()}")
 
-        print(f"Report generated: {report_filename}")
+        logger.info(f"Report generated: {report_filename}")
 
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
     finally:
         conn.close()
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     db_path = os.path.join(os.path.dirname(__file__), '../resources/omniplan.db')
     output_dir = 'resources/reports'
     if len(sys.argv) > 1:

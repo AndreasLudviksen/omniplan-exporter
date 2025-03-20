@@ -1,10 +1,13 @@
 import sqlite3
 import argparse
+import logging
 from datetime import datetime
 from omniplan_exporter.db import operations
 from omniplan_exporter.utils.conversions import convert_duration_from_iso8601_to_jira
 from omniplan_exporter.jira.integration import update_jira_issue
 from config import JIRA_BASE_URL
+
+logger = logging.getLogger(__name__)
 
 def sync_omniplan_with_jira(conn, bearer_token):
     """
@@ -16,7 +19,7 @@ def sync_omniplan_with_jira(conn, bearer_token):
         conn (sqlite3.Connection): The SQLite database connection.
         bearer_token (str): The bearer token for Jira API authentication.
     """
-    print("sync_omniplan_with_jira")
+    logger.info("Starting synchronization of OmniPlan tasks with Jira.")
 
     tasks = operations.get_tasks_by_outline(conn, outline_level=2)
 
@@ -33,7 +36,7 @@ def sync_omniplan_with_jira(conn, bearer_token):
     # Update all tasks in Jira
     for task in tasks_with_jira:
         name, jira_number, start_date, finish_date, work, actual_work = task
-        print(f"Updating Jira issue for task: {name}, Jira Number: {jira_number}")
+        logger.info(f"Updating Jira issue for task: {name}, Jira Number: {jira_number}")
 
         # Format target_start and target_end
         target_start = datetime.fromisoformat(start_date).strftime("%Y-%m-%d") if start_date else None
@@ -58,6 +61,7 @@ def main():
     """
     Main function to synchronize OmniPlan tasks with Jira.
     """
+    logger.info("Starting the synchronization script.")
     parser = argparse.ArgumentParser(description="Synchronize OmniPlan tasks with Jira.")
     parser.add_argument("--db-path", required=True, help="Path to the SQLite database file.")
     parser.add_argument("--bearer-token", required=True, help="Bearer token for Jira API authentication.")
@@ -66,18 +70,19 @@ def main():
     try:
         # Connect to the SQLite database
         conn = sqlite3.connect(args.db_path)
-        print(f"Connected to database at {args.db_path}")
+        logger.info(f"Connected to database at {args.db_path}")
 
         # Call the synchronization function
         sync_omniplan_with_jira(conn, args.bearer_token)
-        print("Synchronization completed successfully.")
+        logger.info("Synchronization completed successfully.")
     except Exception as e:
-        print(f"Failed to synchronize tasks: {e}")
+        logger.error(f"Failed to synchronize tasks: {e}")
     finally:
         # Ensure the database connection is closed
         if 'conn' in locals() and conn:
             conn.close()
-            print("Database connection closed.")
+            logger.info("Database connection closed.")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     main()

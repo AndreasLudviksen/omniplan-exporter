@@ -1,14 +1,17 @@
 import sys
 import os
 import sqlite3
+import logging
 from datetime import datetime
 
 from omniplan_exporter.db import operations
 
+logger = logging.getLogger(__name__)
+
 def generate_assignments_report(conn, epos, output_dir='resources/reports'):
     parent_task = operations.get_parent_task(conn, epos)
     if not parent_task:
-        print(f"No task found for epos: {epos}")
+        logger.error(f"No task found for epos: {epos}")
         return
 
     operations.create_report_directory()
@@ -41,12 +44,13 @@ def generate_assignments_report(conn, epos, output_dir='resources/reports'):
 
         report_file.write(f"\nDenne rapporten ble generert {datetime.now().date()}\n")
 
-    print(f"Report generated: {report_filename}")
+    logger.info(f"Report generated: {report_filename}")
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     if len(sys.argv) < 2:
-        print("Usage: python report_task_assignments_and_status.py <epos> [output_dir]")
+        logger.error("Usage: python report_task_assignments_and_status.py <epos> [output_dir]")
         sys.exit(1)
 
     epos = sys.argv[1]

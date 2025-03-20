@@ -137,3 +137,5 @@ tests/resources/
 .DS_Store
 
 .idea
+
+NOTES.md

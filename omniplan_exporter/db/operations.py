@@ -328,6 +328,8 @@ def get_tasks_by_outline(conn, outline_level, milestone=0):
     ''', (outline_level, milestone))
     return cursor.fetchall()
 
+logger = logging.getLogger(__name__)
+
 def get_task_dependencies(conn, milestone_id, dependency_type):
     cursor = conn.cursor()
     try:
@@ -353,7 +355,7 @@ def get_task_dependencies(conn, milestone_id, dependency_type):
         return [{'Name': dep[0]} for dep in dependencies]
 
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
         return []
 
 def get_sub_tasks_and_assignments(conn, task_uid):

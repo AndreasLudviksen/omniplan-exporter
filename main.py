@@ -10,9 +10,8 @@ from omniplan_exporter.xml import extract_operations
 # Load environment variables
 load_dotenv()
 
-print(sys.path)
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def strip_namespace(xml_string):
     return xml_string.replace(' xmlns="http://schemas.microsoft.com/project"', '')
@@ -39,6 +38,7 @@ def process_xml(file_path, db_name):
         7. Extracts calendar exceptions and inserts them into the database.
     """
     try:
+        logger.info(f"Processing XML file: {file_path}")
         # Ensure the resources directory exists
         os.makedirs(os.path.dirname(db_name), exist_ok=True)
 
@@ -85,17 +85,18 @@ def process_xml(file_path, db_name):
         predecessor_links = extract_operations.extract_predecessor_links(root)
         operations.insert_predecessor_links_into_db(conn, predecessor_links)
 
+        logger.info("XML processing completed successfully.")
     except ET.ParseError as e:
-        logging.error(f"Error parsing XML: {e}")
+        logger.error(f"Error parsing XML: {e}")
     except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
 
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
-    logging.info("Starting XML processing")
+    logger.info("Starting XML processing")
     xml_file_path = os.getenv("XML_FILE_PATH")
     db_file_path = os.getenv("DB_FILE_PATH")
     process_xml(xml_file_path, db_file_path)
-    logging.info("Finished XML processing")
+    logger.info("Finished XML processing")

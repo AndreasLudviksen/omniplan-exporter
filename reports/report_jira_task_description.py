@@ -1,9 +1,12 @@
 import sys
 import os
 import sqlite3
+import logging
 from datetime import datetime
 
 from omniplan_exporter.db import operations
+
+logger = logging.getLogger(__name__)
 
 def generate_report(epos, db_path, output_dir='resources/reports'):
     """
@@ -26,18 +29,19 @@ def generate_report(epos, db_path, output_dir='resources/reports'):
                 # Add the generation date at the end of the report
                 report_file.write(f"\nDenne beskrivelsen ble generert {datetime.now().date()}")
 
-            print(f"Report generated: {report_filename}")
+            logger.info(f"Report generated: {report_filename}")
         else:
-            print(f"No task found with epos number: {epos}")
+            logger.error(f"No task found with epos number: {epos}")
 
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     db_path = os.path.join(os.path.dirname(__file__), '../resources/omniplan.db')  # Update the path to the database
     output_dir = 'resources/reports'
     if len(sys.argv) < 2:
-        print("Usage: python report_jira_task_description.py <epos> [output_dir]")
+        logger.error("Usage: python report_jira_task_description.py <epos> [output_dir]")
     else:
         epos = sys.argv[1]
         if len(sys.argv) > 2:

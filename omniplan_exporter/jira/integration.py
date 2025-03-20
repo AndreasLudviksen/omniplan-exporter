@@ -1,6 +1,9 @@
 import requests
+import logging
 from omniplan_exporter.utils import validation
 from config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
+
+logger = logging.getLogger(__name__)
 
 def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
     """
@@ -21,7 +24,7 @@ def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        print(f"Failed to fetch Jira issue {issue_key}: {e}")
+        logger.error(f"Failed to fetch Jira issue {issue_key}: {e}")
         return None
 
 def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None, original_estimate=None, target_start=None, target_end=None, worklog_duration=None):
@@ -38,16 +41,16 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
         worklog_duration (str, optional): The duration for the new worklog entry (ISO 8601 format, e.g., "PT1H").
     """
     if not issue_key.startswith("MUP-"):
-        print(f"Error: Issue key {issue_key} does not belong to the 'MUP' project.")
+        logger.error(f"Issue key {issue_key} does not belong to the 'MUP' project.")
         return None
 
 
     # Validate date format for target_start and target_end
     if target_start and not validation.validate_date_format(target_start):
-        print(f"Error: Target Start value '{target_start}' is not in the format 'YYYY-MM-DD'.")
+        logger.error(f"Target Start value '{target_start}' is not in the format 'YYYY-MM-DD'.")
         return None
     if target_end and not validation.validate_date_format(target_end):
-        print(f"Error: Target End value '{target_end}' is not in the format 'YYYY-MM-DD'.")
+        logger.error(f"Target End value '{target_end}' is not in the format 'YYYY-MM-DD'.")
         return None
 
 
@@ -67,11 +70,11 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
             delete_url = f"{worklog_url}/{worklog['id']}"
             delete_response = requests.delete(delete_url, headers=headers)
             if delete_response.status_code == 204:
-                print(f"Deleted worklog {worklog['id']} for issue {issue_key}.")
+                logger.info(f"Deleted worklog {worklog['id']} for issue {issue_key}.")
             else:
-                print(f"Failed to delete worklog {worklog['id']} for issue {issue_key}: {delete_response.text}")
+                logger.warning(f"Failed to delete worklog {worklog['id']} for issue {issue_key}: {delete_response.text}")
     except requests.RequestException as e:
-        print(f"Failed to empty worklog for Jira issue {issue_key}: {e}")
+        logger.error(f"Failed to empty worklog for Jira issue {issue_key}: {e}")
         return None
 
     # Update fields
@@ -91,16 +94,16 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
             update_data["fields"][TARGET_END_FIELD] = target_end
 
         response = requests.put(url, headers=headers, json=update_data)
-        print(f"Response Status Code: {response.status_code}")
-        print(f"Response Content: {response.text}")
+        logger.info(f"Response Status Code: {response.status_code}")
+        logger.debug(f"Response Content: {response.text}")
 
         # Handle 204 No Content explicitly
         if response.status_code == 204:
-            print(f"Successfully updated Jira issue {issue_key}. No content returned.")
+            logger.info(f"Successfully updated Jira issue {issue_key}. No content returned.")
         else:
             response.raise_for_status()
     except requests.RequestException as e:
-        print(f"Failed to update Jira issue {issue_key}: {e}")
+        logger.error(f"Failed to update Jira issue {issue_key}: {e}")
         return None
 
     # Add a new worklog entry
@@ -112,11 +115,11 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
             }
             add_worklog_response = requests.post(worklog_url, headers=headers, json=worklog_data)
             if add_worklog_response.status_code == 201:
-                print(f"Successfully added worklog entry with duration {worklog_duration} for issue {issue_key}.")
+                logger.info(f"Successfully added worklog entry with duration {worklog_duration} for issue {issue_key}.")
             else:
-                print(f"Failed to add worklog entry for issue {issue_key}: {add_worklog_response.text}")
+                logger.warning(f"Failed to add worklog entry for issue {issue_key}: {add_worklog_response.text}")
         except requests.RequestException as e:
-            print(f"Failed to add worklog entry for Jira issue {issue_key}: {e}")
+            logger.error(f"Failed to add worklog entry for Jira issue {issue_key}: {e}")
             return None
 
     return {"status": "success", "message": "Issue updated, worklog emptied, and new worklog added"}
