@@ -13,7 +13,6 @@ This project processes an XML file and extracts various elements to insert into 
     - `validation.py`: Validation helpers (e.g., date, duration).
     - `conversions.py`: Conversion utilities (e.g., ISO 8601 to Jira format).
   - `sync.py`: Synchronization logic for syncing OmniPlan tasks with Jira.
-  - `config.py`: Configuration constants (e.g., Jira API URLs, custom fields).
 - `reports/`: Directory containing scripts for generating reports from the database.
   - `report_jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
   - `report_milestones_top_level.py`: Generates a report listing top-level milestones.
@@ -25,6 +24,7 @@ This project processes an XML file and extracts various elements to insert into 
   - `test_integration.py`: Tests for Jira integration.
 - `requirements.txt`: Lists the dependencies required for the project.
 - `setup.py`: Installation script for the project.
+- `.env`: Environment variables file for configuration.
 
 ## How It Works
 
@@ -33,6 +33,20 @@ This project processes an XML file and extracts various elements to insert into 
 3. **Database Insertion**: The extracted data is inserted into a SQLite database.
 4. **Jira Synchronization**: Tasks are synchronized with Jira using the Jira API.
 5. **Report Generation**: Report scripts in the `reports/` directory can be executed to generate various reports from the database.
+
+## Configuration with `.env`
+
+The project uses a `.env` file to manage configuration variables. Create a `.env` file in the root of the project with the following content:
+
+```properties
+JIRA_BASE_URL=<jira base url>
+XML_FILE_PATH=<relative path to the xml file exported from OmniPlan>
+DB_FILE_PATH=<location to store the sqlite db file>
+```
+
+- `JIRA_BASE_URL`: The base URL of your Jira instance.
+- `XML_FILE_PATH`: The path to the XML file to be processed.
+- `DB_FILE_PATH`: The path to the SQLite database file.
 
 ## How to Run
 

@@ -1,7 +1,6 @@
 import requests
-
 from omniplan_exporter.utils import validation
-from omniplan_exporter.config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
+from config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
 
 def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
     """

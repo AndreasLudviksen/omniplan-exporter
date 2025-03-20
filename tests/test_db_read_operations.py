@@ -1,9 +1,11 @@
 import unittest
 import sqlite3
-import sys
 import os
-
+from dotenv import load_dotenv
 from omniplan_exporter.db import operations
+
+# Load environment variables
+load_dotenv()
 
 class TestDBReadOperations(unittest.TestCase):
     def setUp(self):

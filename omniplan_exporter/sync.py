@@ -4,7 +4,7 @@ from datetime import datetime
 from omniplan_exporter.db import operations
 from omniplan_exporter.utils.conversions import convert_duration_from_iso8601_to_jira
 from omniplan_exporter.jira.integration import update_jira_issue
-from omniplan_exporter.config import JIRA_BASE_URL
+from config import JIRA_BASE_URL
 
 def sync_omniplan_with_jira(conn, bearer_token):
     """

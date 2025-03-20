@@ -3,8 +3,12 @@ import xml.etree.ElementTree as ET
 import logging
 import os
 import sys
+from dotenv import load_dotenv
 from omniplan_exporter.db import operations
 from omniplan_exporter.xml import extract_operations
+
+# Load environment variables
+load_dotenv()
 
 print(sys.path)
 # Configure logging
@@ -91,5 +95,7 @@ def process_xml(file_path, db_name):
 # Example usage: Process and insert data from the XML file
 if __name__ == "__main__":
     logging.info("Starting XML processing")
-    process_xml('<XML Input>', 'resources/omniplan.db')
+    xml_file_path = os.getenv("XML_FILE_PATH")
+    db_file_path = os.getenv("DB_FILE_PATH")
+    process_xml(xml_file_path, db_file_path)
     logging.info("Finished XML processing")
