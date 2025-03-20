@@ -3,10 +3,7 @@ import os
 import sqlite3
 from datetime import datetime
 
-# Add the project directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from db_read_operations import get_parent_task, write_report_header, write_subtasks, create_report_directory
+from omniplan_exporter.db import operations
 
 def generate_report(epos, db_path, output_dir='resources/reports'):
     """
@@ -14,15 +11,15 @@ def generate_report(epos, db_path, output_dir='resources/reports'):
     """
     try:
         conn = sqlite3.connect(db_path)
-        parent_task = get_parent_task(conn, epos)
+        parent_task = operations.get_parent_task(conn, epos)
         if parent_task:
             parent_uid, parent_name, parent_note, start_date, finish_date, _, _, _ = parent_task
 
-            create_report_directory()
+            operations.create_report_directory()
             report_filename = os.path.join(output_dir, f"jira-task-description-{epos.upper()}.txt")
             with open(report_filename, 'w') as report_file:
-                write_report_header(report_file, epos, parent_name, parent_note)
-                write_subtasks(conn.cursor(), report_file, parent_uid, 1)
+                operations.write_report_header(report_file, epos, parent_name, parent_note)
+                operations.write_subtasks(conn.cursor(), report_file, parent_uid, 1)
                 
                 report_file.write(f"\nDates:\nStart Date: {start_date}\nFinish Date: {finish_date}\n")
                 

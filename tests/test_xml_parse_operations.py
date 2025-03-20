@@ -4,19 +4,16 @@ import sqlite3
 import sys
 import os
 
-# Add the project directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from xml_parse_operations import extract_tasks
-from db_write_operations import create_tasks_table, create_predecessor_links_table
+from omniplan_exporter.xml import extract_operations
+from omniplan_exporter.db import operations
 
 class TestXMLParseOperations(unittest.TestCase):
     def setUp(self):
         self.conn = sqlite3.connect(':memory:')
         self.conn.execute('PRAGMA foreign_keys = ON')
         cursor = self.conn.cursor()
-        create_tasks_table(cursor)
-        create_predecessor_links_table(cursor)
+        operations.create_tasks_table(cursor)
+        operations.create_predecessor_links_table(cursor)
 
     def tearDown(self):
         self.conn.close()
@@ -46,7 +43,7 @@ class TestXMLParseOperations(unittest.TestCase):
         </Project>
         '''
         root = ET.fromstring(xml_string)
-        tasks = extract_tasks(root)
+        tasks = extract_operations.extract_tasks(root)
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0][2], 'Task 1')
 

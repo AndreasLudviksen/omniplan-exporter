@@ -3,18 +3,15 @@ import os
 import sqlite3
 from datetime import datetime
 
-# Add the project directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from db_read_operations import create_report_directory, get_tasks_by_outline, get_task_dependencies
+from omniplan_exporter.db import operations
 
 def generate_milestones_top_level_report(db_path, output_dir='resources/reports'):
     conn = sqlite3.connect(db_path)
     try:
-        milestones = get_tasks_by_outline(conn, outline_level=1, milestone=1)
+        milestones = operations.get_tasks_by_outline(conn, outline_level=1, milestone=1)
         milestones = sorted(milestones, key=lambda x: datetime.fromisoformat(x[2]).date() if x[2] else datetime.max)
 
-        create_report_directory()
+        operations.create_report_directory()
         report_filename = os.path.join(output_dir, "milestones-top-level.md")
         with open(report_filename, 'w') as report_file:
             report_file.write("# Milepæler Modernisert Utvikleropplevelse\n\n")
@@ -24,8 +21,8 @@ def generate_milestones_top_level_report(db_path, output_dir='resources/reports'
                 uid, name, finish, _, _, _ = milestone
                 finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
                                 
-                dependencies = get_task_dependencies(conn, milestone_id=uid, dependency_type='predecessor')
-                dependents = get_task_dependencies(conn, milestone_id=uid, dependency_type='successor')
+                dependencies = operations.get_task_dependencies(conn, milestone_id=uid, dependency_type='predecessor')
+                dependents = operations.get_task_dependencies(conn, milestone_id=uid, dependency_type='successor')
                 
                 dependencies_names = "<br>".join([f"- {dep['Name']}" for dep in dependencies])
                 dependents_names = "<br>".join([f"- {dep['Name']}" for dep in dependents])

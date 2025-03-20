@@ -3,23 +3,17 @@ import sqlite3
 import sys
 import os
 
-# Add the project directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from omniplan_exporter.db import operations
 
-from db_write_operations import (
-    create_connection, insert_tasks_into_db, insert_assignments_into_db,
-    create_tasks_table, create_resources_table, create_assignments_table, create_predecessor_links_table
-)
-
-class TestDBOperations(unittest.TestCase):
+class TestDBWriteOperations(unittest.TestCase):
     def setUp(self):
         self.conn = sqlite3.connect(':memory:')
         self.conn.execute('PRAGMA foreign_keys = ON')
         cursor = self.conn.cursor()
-        create_tasks_table(cursor)
-        create_resources_table(cursor)
-        create_assignments_table(cursor)
-        create_predecessor_links_table(cursor)
+        operations.create_tasks_table(cursor)
+        operations.create_resources_table(cursor)
+        operations.create_assignments_table(cursor)
+        operations.create_predecessor_links_table(cursor)
 
     def tearDown(self):
         self.conn.close()
@@ -28,7 +22,7 @@ class TestDBOperations(unittest.TestCase):
         tasks = [
             (1, 1, 'Task 1', 1, 0, 500, '2023-01-01T00:00:00', '2023-01-02T00:00:00', '1d', '8h', '8h', '0h', 0, 0, 'Notes', None, 50)
         ]
-        insert_tasks_into_db(self.conn, tasks)
+        operations.insert_tasks_into_db(self.conn, tasks)
         cursor = self.conn.cursor()
         cursor.execute('SELECT * FROM omniplan_tasks')
         result = cursor.fetchall()
@@ -41,7 +35,7 @@ class TestDBOperations(unittest.TestCase):
         assignments = [
             (1, 1, 1, 0, 100, 1.0, '8h', '8h', '0h', '2023-01-01T00:00:00', '2023-01-02T00:00:00')
         ]
-        insert_assignments_into_db(self.conn, assignments)
+        operations.insert_assignments_into_db(self.conn, assignments)
         cursor = self.conn.cursor()
         cursor.execute('SELECT * FROM omniplan_assignments')
         result = cursor.fetchall()

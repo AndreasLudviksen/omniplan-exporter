@@ -131,6 +131,7 @@ dmypy.json
 
 # Generated resources
 resources/
+tests/resources/
 
 # Mac custom attributes
 .DS_Store

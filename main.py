@@ -2,17 +2,11 @@ import sqlite3
 import xml.etree.ElementTree as ET
 import logging
 import os
-from db_write_operations import (
-    create_connection, insert_tasks_into_db, insert_resources_into_db, insert_assignments_into_db,
-    insert_calendars_into_db, insert_calendar_weekdays_into_db, insert_calendar_exceptions_into_db,
-    insert_extended_attributes_into_db, insert_predecessor_links_into_db
-)
-from xml_parse_operations import (
-    extract_tasks, extract_resources, extract_assignments,
-    extract_calendars, extract_calendar_weekdays, extract_calendar_exceptions,
-    extract_extended_attributes, extract_predecessor_links
-)
+import sys
+from omniplan_exporter.db import operations
+from omniplan_exporter.xml import extract_operations
 
+print(sys.path)
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -53,39 +47,39 @@ def process_xml(file_path, db_name):
         root = ET.fromstring(xml_string)
 
         # Create a database connection
-        conn = create_connection(db_name)
+        conn = operations.create_connection(db_name)
 
         # Extract and insert tasks
-        tasks = extract_tasks(root)
-        insert_tasks_into_db(conn, tasks)
+        tasks = extract_operations.extract_tasks(root)
+        operations.insert_tasks_into_db(conn, tasks)
 
         # Extract and insert resources
-        resources = extract_resources(root)
-        insert_resources_into_db(conn, resources)
+        resources = extract_operations.extract_resources(root)
+        operations.insert_resources_into_db(conn, resources)
 
         # Extract and insert assignments
-        assignments = extract_assignments(root)
-        insert_assignments_into_db(conn, assignments)
+        assignments = extract_operations.extract_assignments(root)
+        operations.insert_assignments_into_db(conn, assignments)
 
         # Extract and insert calendars
-        calendars = extract_calendars(root)
-        insert_calendars_into_db(conn, calendars)
+        calendars = extract_operations.extract_calendars(root)
+        operations.insert_calendars_into_db(conn, calendars)
 
         # Extract and insert calendar weekdays
-        calendar_weekdays = extract_calendar_weekdays(root)
-        insert_calendar_weekdays_into_db(conn, calendar_weekdays)
+        calendar_weekdays = extract_operations.extract_calendar_weekdays(root)
+        operations.insert_calendar_weekdays_into_db(conn, calendar_weekdays)
 
         # Extract and insert calendar exceptions
-        calendar_exceptions = extract_calendar_exceptions(root)
-        insert_calendar_exceptions_into_db(conn, calendar_exceptions)
+        calendar_exceptions = extract_operations.extract_calendar_exceptions(root)
+        operations.insert_calendar_exceptions_into_db(conn, calendar_exceptions)
 
         # Extract and insert extended attributes
-        extended_attributes = extract_extended_attributes(root)
-        insert_extended_attributes_into_db(conn, extended_attributes)
+        extended_attributes = extract_operations.extract_extended_attributes(root)
+        operations.insert_extended_attributes_into_db(conn, extended_attributes)
 
         # Extract and insert predecessor links
-        predecessor_links = extract_predecessor_links(root)
-        insert_predecessor_links_into_db(conn, predecessor_links)
+        predecessor_links = extract_operations.extract_predecessor_links(root)
+        operations.insert_predecessor_links_into_db(conn, predecessor_links)
 
     except ET.ParseError as e:
         logging.error(f"Error parsing XML: {e}")
