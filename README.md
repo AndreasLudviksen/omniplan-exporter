@@ -24,7 +24,6 @@ The project offers synchronization of Jira tasks, and producese reports from the
   - `test_sync.py`: Tests for synchronization logic.
   - `test_integration.py`: Tests for Jira integration.
 - `requirements.txt`: Lists the dependencies required for the project.
-- `setup.py`: Installation script for the project.
 - `.env`: Environment variables file for configuration.
 
 ## How It Works
@@ -66,27 +65,6 @@ DB_FILE_PATH=<location to store the sqlite db file>
 4. **Run Report Scripts**: Execute the desired report script from the root of the project to generate a report.
    ```sh
    python reports/report_milestones_top_level.py
-   ```
-
-## Using `setup.py`
-
-You can install the project as a package using the `setup.py` file. This allows you to use the project as a command-line tool or import its modules in other Python scripts.
-
-1. **Install the Package**:
-   ```sh
-   python setup.py install
-   ```
-
-2. **Use the Command-Line Tool**:
-   After installation, you can run the synchronization script directly:
-   ```sh
-   omniplan-sync --db-path resources/omniplan.db --bearer-token YOUR_JIRA_TOKEN
-   ```
-
-3. **Uninstall the Package**:
-   If needed, you can uninstall the package using `pip`:
-   ```sh
-   pip uninstall omniplan-exporter
    ```
 
 ## Running Tests
