@@ -1,6 +1,7 @@
 # OmniPlan Exporter
 
-This project processes an XML file and extracts various elements to insert into a SQLite database. It includes functionality to handle tasks, resources, assignments, calendars, calendar weekdays, and calendar exceptions. Additionally, it synchronizes tasks with Jira and generates various reports.
+This project processes an export from Omniplan (as an XML file) and migrates the data to a SQLite database. 
+The project offers synchronization of Jira tasks, and producese reports from the data in the database.
 
 ## Project Structure
 
@@ -101,6 +102,31 @@ To run the tests, you can use `pytest` or `ptw` (pytest-watch) for continuous te
    ```sh
    ptw
    ```
+
+## Code Formatting and Linting
+
+This project uses `black` for code formatting and `flake8` for linting to ensure code quality and consistency.
+
+### Pre-commit Hook
+To ensure code is formatted and linted before committing, you can set up a pre-commit hook using the `.pre-commit-config.yaml` file. Install `pre-commit` and set up the hooks with the following commands:
+```bash
+pip install pre-commit
+pre-commit install
+```
+This will automatically run `black` and `flake8` on staged files before each commit.
+
+### Formatting with Black
+To format the codebase using `black`, you can run the following command:
+```bash
+make format
+```
+This command is defined in the `Makefile` and will apply `black` formatting to all files in the project.
+
+### Linting with Flake8
+To lint the codebase using `flake8`, you can run:
+```bash
+make lint
+```
 
 ## Example Usage
 

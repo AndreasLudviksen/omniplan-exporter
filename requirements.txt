@@ -7,3 +7,6 @@ pytest
 pytest-watch
 isodate
 python-dotenv
+flake8
+black
+pre-commit

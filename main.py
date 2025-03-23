@@ -2,7 +2,6 @@ import sqlite3
 import xml.etree.ElementTree as ET
 import logging
 import os
-import sys
 from dotenv import load_dotenv
 from omniplan_exporter.db import operations
 from omniplan_exporter.xml import extract_operations
@@ -10,11 +9,13 @@ from omniplan_exporter.xml import extract_operations
 # Load environment variables
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 def strip_namespace(xml_string):
-    return xml_string.replace(' xmlns="http://schemas.microsoft.com/project"', '')
+    return xml_string.replace(' xmlns="http://schemas.microsoft.com/project"', "")
+
 
 def process_xml(file_path, db_name):
     """
@@ -43,7 +44,7 @@ def process_xml(file_path, db_name):
         os.makedirs(os.path.dirname(db_name), exist_ok=True)
 
         # Read and strip the namespace from the XML file
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             xml_string = file.read()
         xml_string = strip_namespace(xml_string)
 
@@ -93,7 +94,7 @@ def process_xml(file_path, db_name):
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
 
-# Example usage: Process and insert data from the XML file
+
 if __name__ == "__main__":
     logger.info("Starting XML processing")
     xml_file_path = os.getenv("XML_FILE_PATH")

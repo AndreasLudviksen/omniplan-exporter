@@ -1,6 +1,7 @@
 import re
 from omniplan_exporter.utils.validation import validate_iso8601_duration
 
+
 def convert_duration_from_iso8601_to_jira(duration):
     """
     Converts an ISO 8601 duration string to Jira-supported format.
@@ -13,6 +14,7 @@ def convert_duration_from_iso8601_to_jira(duration):
     """
     if not validate_iso8601_duration(duration):
         return None
+
     match = re.match(r"^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$", duration)
     hours = match.group(1) or "0"
     minutes = match.group(2) or "0"

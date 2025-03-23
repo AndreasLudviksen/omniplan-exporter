@@ -5,6 +5,7 @@ from config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
 
 logger = logging.getLogger(__name__)
 
+
 def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
     """
     Fetches details of a Jira issue.
@@ -27,36 +28,53 @@ def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
         logger.error(f"Failed to fetch Jira issue {issue_key}: {e}")
         return None
 
-def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None, original_estimate=None, target_start=None, target_end=None, worklog_duration=None):
+
+def update_jira_issue(
+    issue_key,
+    jira_base_url=JIRA_BASE_URL,
+    bearer_token=None,
+    original_estimate=None,
+    target_start=None,
+    target_end=None,
+    worklog_duration=None,
+):
     """
-    Updates the originalEstimate field, Target Start, and Target End fields of an existing Jira issue, empties its worklog, and adds a new worklog entry.
+    Updates the originalEstimate field, Target Start, and Target End fields of an
+    existing Jira issue,
+    empties its worklog, and adds a new worklog entry.
 
     Args:
         issue_key (str): The Jira issue key (e.g., "PROJECT-123").
         jira_base_url (str): The base URL of the Jira instance.
         bearer_token (str): The bearer token for authentication.
-        original_estimate (str): The new value for the originalEstimate field (e.g., "5d").
-        target_start (str, optional): The new value for the Target Start field (format: "YYYY-MM-DD").
-        target_end (str, optional): The new value for the Target End field (format: "YYYY-MM-DD").
-        worklog_duration (str, optional): The duration for the new worklog entry (ISO 8601 format, e.g., "PT1H").
+        original_estimate (str): The new value for the
+        originalEstimate field (e.g., "5d").
+        target_start (str, optional): The new value for the
+        Target Start field (format: "YYYY-MM-DD").
+        target_end (str, optional): The new value for the
+        Target End field (format: "YYYY-MM-DD").
+        worklog_duration (str, optional): The duration for the
+        new worklog entry (ISO 8601 format, e.g., "PT1H").
     """
     if not issue_key.startswith("MUP-"):
         logger.error(f"Issue key {issue_key} does not belong to the 'MUP' project.")
         return None
 
-
     # Validate date format for target_start and target_end
     if target_start and not validation.validate_date_format(target_start):
-        logger.error(f"Target Start value '{target_start}' is not in the format 'YYYY-MM-DD'.")
+        logger.error(
+            f"Target Start value '{target_start}' is not in the format 'YYYY-MM-DD'."
+        )
         return None
     if target_end and not validation.validate_date_format(target_end):
-        logger.error(f"Target End value '{target_end}' is not in the format 'YYYY-MM-DD'.")
+        logger.error(
+            f"Target End value '{target_end}' is not in the format 'YYYY-MM-DD'."
+        )
         return None
-
 
     headers = {
         "Authorization": f"Bearer {bearer_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     # Empty the worklog
@@ -72,7 +90,10 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
             if delete_response.status_code == 204:
                 logger.info(f"Deleted worklog {worklog['id']} for issue {issue_key}.")
             else:
-                logger.warning(f"Failed to delete worklog {worklog['id']} for issue {issue_key}: {delete_response.text}")
+                logger.warning(
+                    f"Failed to delete worklog {worklog['id']} for issue {issue_key}: "
+                    f"{delete_response.text}"
+                )
     except requests.RequestException as e:
         logger.error(f"Failed to empty worklog for Jira issue {issue_key}: {e}")
         return None
@@ -84,7 +105,7 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
             "fields": {
                 "timetracking": {
                     "originalEstimate": original_estimate,
-                    "remainingEstimate": original_estimate
+                    "remainingEstimate": original_estimate,
                 }
             }
         }
@@ -99,7 +120,9 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
 
         # Handle 204 No Content explicitly
         if response.status_code == 204:
-            logger.info(f"Successfully updated Jira issue {issue_key}. No content returned.")
+            logger.info(
+                f"Successfully updated Jira issue {issue_key}. No content returned."
+            )
         else:
             response.raise_for_status()
     except requests.RequestException as e:
@@ -109,17 +132,29 @@ def update_jira_issue(issue_key, jira_base_url=JIRA_BASE_URL, bearer_token=None,
     # Add a new worklog entry
     if worklog_duration:
         try:
-            worklog_data = {
-                "timeSpent": worklog_duration,
-                "comment": "Added via API"
-            }
-            add_worklog_response = requests.post(worklog_url, headers=headers, json=worklog_data)
+            worklog_data = {"timeSpent": worklog_duration, "comment": "Added via API"}
+            add_worklog_response = requests.post(
+                worklog_url, headers=headers, json=worklog_data
+            )
             if add_worklog_response.status_code == 201:
-                logger.info(f"Successfully added worklog entry with duration {worklog_duration} for issue {issue_key}.")
+                logger.info(
+                    f"Successfully added worklog entry with duration "
+                    f"{worklog_duration} for issue {issue_key}."
+                )
             else:
-                logger.warning(f"Failed to add worklog entry for issue {issue_key}: {add_worklog_response.text}")
+                logger.warning(
+                    f"Failed to add worklog entry for issue {issue_key}: "
+                    f"{add_worklog_response.text}"
+                )
         except requests.RequestException as e:
-            logger.error(f"Failed to add worklog entry for Jira issue {issue_key}: {e}")
+            logger.error(
+                "Failed to add worklog entry for Jira issue %s: %s",
+                issue_key,
+                e,
+            )
             return None
 
-    return {"status": "success", "message": "Issue updated, worklog emptied, and new worklog added"}
+    return {
+        "status": "success",
+        "message": "Issue updated, worklog emptied, and new worklog added",
+    }

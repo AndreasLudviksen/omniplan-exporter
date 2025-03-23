@@ -7,10 +7,11 @@ import os
 from omniplan_exporter.xml import extract_operations
 from omniplan_exporter.db import operations
 
+
 class TestXMLParseOperations(unittest.TestCase):
     def setUp(self):
-        self.conn = sqlite3.connect(':memory:')
-        self.conn.execute('PRAGMA foreign_keys = ON')
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.execute("PRAGMA foreign_keys = ON")
         cursor = self.conn.cursor()
         operations.create_tasks_table(cursor)
         operations.create_predecessor_links_table(cursor)
@@ -19,7 +20,7 @@ class TestXMLParseOperations(unittest.TestCase):
         self.conn.close()
 
     def test_extract_tasks(self):
-        xml_string = '''
+        xml_string = """
         <Project>
             <Tasks>
                 <Task>
@@ -41,11 +42,12 @@ class TestXMLParseOperations(unittest.TestCase):
                 </Task>
             </Tasks>
         </Project>
-        '''
+        """
         root = ET.fromstring(xml_string)
         tasks = extract_operations.extract_tasks(root)
         self.assertEqual(len(tasks), 1)
-        self.assertEqual(tasks[0][2], 'Task 1')
+        self.assertEqual(tasks[0][2], "Task 1")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

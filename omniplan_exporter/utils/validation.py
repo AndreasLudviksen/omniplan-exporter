@@ -1,5 +1,6 @@
 import re
 
+
 def validate_date_format(date_str):
     """
     Validates if the given date string is in the format 'YYYY-MM-DD'.
@@ -12,6 +13,7 @@ def validate_date_format(date_str):
     """
     date_pattern = r"^\d{4}-\d{2}-\d{2}$"
     return bool(re.match(date_pattern, date_str))
+
 
 def validate_iso8601_duration(duration):
     """
