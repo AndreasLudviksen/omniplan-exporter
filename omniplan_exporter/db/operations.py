@@ -571,7 +571,7 @@ def get_jira_link(conn, task_uid):
     return None
 
 
-def get_assignments(conn, task_uid):
+def get_assignments_by_uid(conn, task_uid):
     """
     Fetches assignments for a given task UID.
 

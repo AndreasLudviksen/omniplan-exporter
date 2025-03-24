@@ -62,7 +62,7 @@ def generate_assignments_report(conn, epos, output_dir="resources/reports"):
                 f"{percent_complete or 0}% | {start_date} | {finish_date} | "
             )
             # Fetch assignments for the sub-task
-            assignments = operations.get_assignments(conn, sub_task_uid)
+            assignments = operations.get_assignments_by_uid(conn, sub_task_uid)
             if assignments:
                 assignment_list = ", ".join(
                     [
