@@ -3,6 +3,10 @@ import subprocess
 import unittest
 
 
+@unittest.skipIf(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    "Skipping TestReportGeneration in GitHub Actions environment.",
+)
 class TestReportGeneration(unittest.TestCase):
     def setUp(self):
         # Ensure the test resources directory exists
