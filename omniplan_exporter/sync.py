@@ -10,16 +10,17 @@ from config import JIRA_BASE_URL
 logger = logging.getLogger(__name__)
 
 
-def sync_omniplan_with_jira(conn, bearer_token):
+def sync_omniplan_with_jira(conn, bearer_token, dry_run=False):
     """
     Synchronizes tasks from OmniPlan with Jira by fetching tasks with OutlineLevel=2,
     filtering out tasks without a Jira number, sorting them by Jira number,
     and printing their details.
-    Updates all tasks in the list in Jira.
+    Updates all tasks in the list in Jira unless dry_run is True.
 
     Args:
         conn (sqlite3.Connection): The SQLite database connection.
         bearer_token (str): The bearer token for Jira API authentication.
+        dry_run (bool): If True, no changes will be made; only logs the actions.
     """
     logger.info("Starting synchronization of OmniPlan tasks with Jira.")
 
@@ -40,7 +41,7 @@ def sync_omniplan_with_jira(conn, bearer_token):
     # Update all tasks in Jira
     for task in tasks_with_jira:
         name, jira_number, start_date, finish_date, work, actual_work = task
-        logger.info(f"Updating Jira issue for task: {name}, Jira Number: {jira_number}")
+        logger.info(f"Processing task: {name}, Jira Number: {jira_number}")
 
         # Format target_start and target_end
         target_start = (
@@ -62,16 +63,25 @@ def sync_omniplan_with_jira(conn, bearer_token):
             convert_duration_from_iso8601_to_jira(actual_work) if actual_work else None
         )
 
-        # Call update_jira_issue with formatted values
-        update_jira_issue(
-            issue_key=jira_number,
-            jira_base_url=JIRA_BASE_URL,
-            bearer_token=bearer_token,
-            original_estimate=original_estimate,
-            target_start=target_start,
-            target_end=target_end,
-            worklog_duration=worklog_duration,
-        )
+        if dry_run:
+            # Log the changes that would be made
+            logger.info(
+                f"[DRY RUN] Would update Jira issue {jira_number} with: "
+                f"Original Estimate: {original_estimate}, "
+                f"Target Start: {target_start}, Target End: {target_end}, "
+                f"Worklog Duration: {worklog_duration}"
+            )
+        else:
+            # Call update_jira_issue with formatted values
+            update_jira_issue(
+                issue_key=jira_number,
+                jira_base_url=JIRA_BASE_URL,
+                bearer_token=bearer_token,
+                original_estimate=original_estimate,
+                target_start=target_start,
+                target_end=target_end,
+                worklog_duration=worklog_duration,
+            )
 
 
 def main():
@@ -90,6 +100,11 @@ def main():
         required=True,
         help="Bearer token for Jira API authentication.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="If set, no changes will be made; only logs the actions.",
+    )
     args = parser.parse_args()
 
     try:
@@ -98,7 +113,7 @@ def main():
         logger.info(f"Connected to database at {args.db_path}")
 
         # Call the synchronization function
-        sync_omniplan_with_jira(conn, args.bearer_token)
+        sync_omniplan_with_jira(conn, args.bearer_token, dry_run=args.dry_run)
         logger.info("Synchronization completed successfully.")
     except Exception as e:
         logger.error(f"Failed to synchronize tasks: {e}")
