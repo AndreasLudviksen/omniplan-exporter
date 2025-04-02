@@ -426,12 +426,12 @@ def get_tasks_by_outline(conn, outline_level, milestone=0):
 
     Returns:
         list: A list of tuples containing the task UID, name, finish date, start date,
-        work, and actual work.
+        work, actual work, and parent UID.
     """
     cursor = conn.cursor()
     cursor.execute(
         """
-        SELECT UID, Name, Finish, Start, Work, ActualWork
+        SELECT UID, Name, Finish, Start, Work, ActualWork, ParentUID
         FROM omniplan_tasks
         WHERE OutlineLevel=? AND Milestone=?
         """,

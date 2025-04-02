@@ -1,7 +1,7 @@
 import requests
 import logging
 from omniplan_exporter.utils import validation
-from config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
+from omniplan_exporter.config import TARGET_START_FIELD, TARGET_END_FIELD, JIRA_BASE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -101,14 +101,13 @@ def update_jira_issue(
     # Update fields
     try:
         url = f"{jira_base_url}/rest/api/2/issue/{issue_key}"
-        update_data = {
-            "fields": {
-                "timetracking": {
-                    "originalEstimate": original_estimate,
-                    "remainingEstimate": original_estimate,
-                }
+        update_data = {"fields": {}}
+
+        if original_estimate:
+            update_data["fields"]["timetracking"] = {
+                "originalEstimate": original_estimate,
+                "remainingEstimate": original_estimate,
             }
-        }
         if target_start:
             update_data["fields"][TARGET_START_FIELD] = target_start
         if target_end:
@@ -130,7 +129,7 @@ def update_jira_issue(
         return None
 
     # Add a new worklog entry
-    if worklog_duration:
+    if worklog_duration and worklog_duration != "0h 0m":
         try:
             worklog_data = {"timeSpent": worklog_duration, "comment": "Added via API"}
             add_worklog_response = requests.post(

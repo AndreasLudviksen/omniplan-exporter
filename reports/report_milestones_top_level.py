@@ -13,6 +13,11 @@ def generate_milestones_top_level_report(db_path, output_dir="resources/reports"
     conn = sqlite3.connect(db_path)
     try:
         milestones = operations.get_tasks_by_outline(conn, outline_level=1, milestone=1)
+        milestones = [
+            (uid, name, finish, start, work, actual_work)
+            for uid, name, finish, start, work, actual_work, parent_uid in milestones
+        ]
+
         milestones = sorted(
             milestones,
             key=lambda x: datetime.fromisoformat(x[2]).date() if x[2] else datetime.max,
