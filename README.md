@@ -18,6 +18,7 @@ The project offers synchronization of Jira tasks, and producese reports from the
   - `report_jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
   - `report_milestones_top_level.py`: Generates a report listing top-level milestones.
   - `report_task_assignments_and_status.py`: Generates a report summarizing task assignments and their statuses.
+  - `report_stakeholders_from_jira.py`: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
 - `tests/`: Directory containing unit tests for the project.
   - `test_db_operations.py`: Tests for database operations.
   - `test_validation.py`: Tests for validation utilities.
@@ -66,6 +67,10 @@ DB_FILE_PATH=<location to store the sqlite db file>
    ```sh
    python reports/report_milestones_top_level.py
    ```
+   - **Stakeholders Report**: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
+     ```sh
+     python reports/report_stakeholders_from_jira.py <bearer_token>
+     ```
 
 ## Running Tests
 

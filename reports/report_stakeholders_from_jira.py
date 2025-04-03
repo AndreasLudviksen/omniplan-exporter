@@ -5,6 +5,7 @@ import sqlite3
 from dotenv import load_dotenv  # Import dotenv to load environment variables
 from omniplan_exporter.db import operations  # Import operations for fetching tasks
 from omniplan_exporter.jira.integration import fetch_jira_issue
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +38,10 @@ def generate_stakeholders_report(bearer_token, conn, output_dir="resources/repor
         # Prepare data for the pivot table
         pivot_data = {}
         all_names = set()
+        task_data = []  # Collect task data with start_date for sorting
 
         for task in tasks:
-            uid, name, _, _, _, _, parent_uid = task
+            uid, name, _, start, _, _, parent_uid = task  # Include start field
             jira_number = operations.get_jira_number(conn, uid)
             if jira_number:
                 issue_details = fetch_jira_issue(
@@ -61,11 +63,24 @@ def generate_stakeholders_report(bearer_token, conn, output_dir="resources/repor
                 # Prefix task name with Jira issue number and make it a link
                 name = f"[{jira_number} - {name}]({JIRA_BASE_URL}/browse/{jira_number})"
 
+                # Add start date in the same cell with a line break.
+                # Only include the date part.
+                start_date = None
+                if start:
+                    start_date = start.split(" ")[0]  # Extract only the date part
+                    name += f"<br>Oppstart: {start_date}"
+
                 for navn, rolle in allocation_data:
                     all_names.add(navn)
                     if name not in pivot_data:
                         pivot_data[name] = {}
                     pivot_data[name][navn] = rolle
+
+                # Append task data for sorting
+                task_data.append((start_date, name, pivot_data[name]))
+
+        # Sort tasks by start_date (None values will be last)
+        task_data.sort(key=lambda x: (x[0] is None, x[0]))
 
         # Separate names with parentheses to be the first columns
         names_with_parentheses = sorted([name for name in all_names if "(" in name])
@@ -96,8 +111,8 @@ def generate_stakeholders_report(bearer_token, conn, output_dir="resources/repor
             report_file.write(formatted_header + "\n")
             report_file.write(header_separator + "\n")
 
-            # Write rows for each task, sorted by "Task Name"
-            for task_name, allocations in sorted(pivot_data.items()):
+            # Write rows for each task, sorted by start_date
+            for _, task_name, allocations in task_data:
                 row = [allocations.get(navn, "") for navn in all_names]
                 formatted_row = (
                     "| "
@@ -108,6 +123,8 @@ def generate_stakeholders_report(bearer_token, conn, output_dir="resources/repor
                     + " |"
                 )
                 report_file.write(formatted_row + "\n")
+
+            report_file.write(f"\nDenne rapporten ble generert {datetime.now().date()}")
 
         logger.info(f"Report generated: {report_filename}")
 
