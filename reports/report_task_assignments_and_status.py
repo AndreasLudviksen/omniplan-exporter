@@ -9,15 +9,15 @@ from omniplan_exporter.db import operations
 logger = logging.getLogger(__name__)
 
 
-def generate_assignments_report(conn, epos, output_dir="resources/reports"):
-    parent_task = operations.get_parent_task(conn, epos)
+def generate_assignments_report(conn, jira_task, output_dir="resources/reports"):
+    parent_task = operations.get_parent_task(conn, jira_task)
     if not parent_task:
-        logger.error(f"No task found for epos: {epos}")
+        logger.error(f"No task found for jira_task: {jira_task}")
         return
 
     operations.create_report_directory()
     report_filename = os.path.join(
-        output_dir, f"task-assignments-and-status-{epos.upper()}.md"
+        output_dir, f"task-assignments-and-status-{jira_task.upper()}.md"
     )
     with open(report_filename, "w") as report_file:
         (
@@ -28,7 +28,7 @@ def generate_assignments_report(conn, epos, output_dir="resources/reports"):
             task_finish,
             task_percent_complete,
             task_work,
-            task_epos,
+            task_jira_task,
         ) = parent_task
         jira_link = operations.get_jira_link(conn, task_uid)
         report_file.write(f"# Assignments and status for {jira_link}\n\n")
@@ -86,15 +86,18 @@ if __name__ == "__main__":
     )
     if len(sys.argv) < 2:
         logger.error(
-            "Usage: python report_task_assignments_and_status.py <epos> [output_dir]"
+            (
+                "Usage: python report_task_assignments_and_status.py "
+                "<jira_task> [output_dir]"
+            )
         )
         sys.exit(1)
 
-    epos = sys.argv[1]
+    jira_task = sys.argv[1]
     output_dir = "resources/reports"
     if len(sys.argv) > 2:
         output_dir = sys.argv[2]
     db_path = os.path.join(os.path.dirname(__file__), "../resources/omniplan.db")
     conn = sqlite3.connect(db_path)
-    generate_assignments_report(conn, epos, output_dir)
+    generate_assignments_report(conn, jira_task, output_dir)
     conn.close()

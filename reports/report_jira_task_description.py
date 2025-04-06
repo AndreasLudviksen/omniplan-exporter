@@ -9,14 +9,14 @@ from omniplan_exporter.db import operations
 logger = logging.getLogger(__name__)
 
 
-def generate_report(epos, db_path, output_dir="resources/reports"):
+def generate_report(jira_task, db_path, output_dir="resources/reports"):
     """
     Generates a report for the task that matches the given note string,
     including nested sub-tasks.
     """
     try:
         conn = sqlite3.connect(db_path)
-        parent_task = operations.get_parent_task(conn, epos)
+        parent_task = operations.get_parent_task(conn, jira_task)
         if parent_task:
             (
                 parent_uid,
@@ -31,11 +31,11 @@ def generate_report(epos, db_path, output_dir="resources/reports"):
 
             operations.create_report_directory()
             report_filename = os.path.join(
-                output_dir, f"jira-task-description-{epos.upper()}.txt"
+                output_dir, f"jira-task-description-{jira_task.upper()}.txt"
             )
             with open(report_filename, "w") as report_file:
                 operations.write_report_header(
-                    report_file, epos, parent_name, parent_note
+                    report_file, jira_task, parent_name, parent_note
                 )
                 operations.write_subtasks(conn.cursor(), report_file, parent_uid, 1)
 
@@ -50,7 +50,7 @@ def generate_report(epos, db_path, output_dir="resources/reports"):
 
             logger.info(f"Report generated: {report_filename}")
         else:
-            logger.error(f"No task found with epos number: {epos}")
+            logger.error(f"No task found with jira_task number: {jira_task}")
 
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
@@ -67,10 +67,10 @@ if __name__ == "__main__":
     output_dir = "resources/reports"
     if len(sys.argv) < 2:
         logger.error(
-            "Usage: python report_jira_task_description.py <epos> [output_dir]"
+            "Usage: python report_jira_task_description.py <jira_task> [output_dir]"
         )
     else:
-        epos = sys.argv[1]
+        jira_task = sys.argv[1]
         if len(sys.argv) > 2:
             output_dir = sys.argv[2]
-        generate_report(epos, db_path, output_dir)
+        generate_report(jira_task, db_path, output_dir)

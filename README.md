@@ -19,6 +19,7 @@ The project offers synchronization of Jira tasks, and producese reports from the
   - `report_milestones_top_level.py`: Generates a report listing top-level milestones.
   - `report_task_assignments_and_status.py`: Generates a report summarizing task assignments and their statuses.
   - `report_stakeholders_from_jira.py`: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
+  - `report_diff_jira_omniplan.py`: Generates a comparison report between tasks in Jira and OmniPlan, highlighting mismatches and tasks exclusive to one system.
 - `tests/`: Directory containing unit tests for the project.
   - `test_db_operations.py`: Tests for database operations.
   - `test_validation.py`: Tests for validation utilities.
@@ -33,7 +34,7 @@ The project offers synchronization of Jira tasks, and producese reports from the
 2. **Data Extraction**: Various elements such as tasks, resources, assignments, calendars, calendar weekdays, and calendar exceptions are extracted from the XML.
 3. **Database Insertion**: The extracted data is inserted into a SQLite database.
 4. **Jira Synchronization**: Tasks are synchronized with Jira using the Jira API.
-5. **Report Generation**: Report scripts in the `reports/` directory can be executed to generate various reports from the database.
+5. **Report Generation**: Report scripts in the `reports/` directory can be executed to generate various reports from the database, including task descriptions, milestones, assignments, stakeholders, and differences between Jira and OmniPlan.
 
 ## Configuration with `.env`
 
@@ -67,10 +68,15 @@ DB_FILE_PATH=<location to store the sqlite db file>
    ```sh
    python reports/report_milestones_top_level.py
    ```
-   - **Stakeholders Report**: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
-     ```sh
-     python reports/report_stakeholders_from_jira.py <bearer_token>
-     ```
+5. **Stakeholders Report**: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
+   ```sh
+   python reports/report_stakeholders_from_jira.py <bearer_token>
+   ```
+
+6. **Diff Report**: Generates a comparison report between tasks in Jira and OmniPlan, highlighting mismatches and tasks exclusive to one system.
+   ```sh
+   python reports/report_diff_jira_omniplan.py <jira_task> <bearer_token>
+   ```
 
 ## Running Tests
 

@@ -82,22 +82,23 @@ class TestDBOperations(unittest.TestCase):
             'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish) VALUES (1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00")'
         )
         self.conn.execute(
-            'INSERT INTO omniplan_task_extended_attributes (TaskUID, FieldID, Value) VALUES (1, 188743731, "epos")'
+            'INSERT INTO omniplan_task_extended_attributes (TaskUID, FieldID, Value) VALUES (1, 188743731, "jira_task")'
         )
-        result = operations.get_parent_task(self.conn, "epos")
+        result = operations.get_parent_task(self.conn, "jira_task")
         self.assertIsNotNone(result)
         self.assertEqual(result[1], "Task 1")
 
     def test_get_sub_tasks(self):
         self.conn.execute(
-            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish) VALUES (1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00")'
+            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish, PercentComplete) VALUES (1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 50)'
         )
         self.conn.execute(
-            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish, ParentUID, Milestone) VALUES (2, "Sub Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 1, 0)'
+            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish, ParentUID, Milestone, PercentComplete) VALUES (2, "Sub Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 1, 0, 75)'
         )
         sub_tasks, _ = operations.get_sub_tasks(self.conn, 1)
         self.assertEqual(len(sub_tasks), 1)
         self.assertEqual(sub_tasks[0][1], "Sub Task 1")
+        self.assertEqual(sub_tasks[0][5], 75)
 
     def test_create_tasks_table(self):
         cursor = self.conn.cursor()
@@ -147,14 +148,14 @@ class TestDBOperations(unittest.TestCase):
     def test_insert_extended_attributes_into_db(self):
         self.conn.execute('INSERT INTO omniplan_tasks (UID, Name) VALUES (1, "Task 1")')
         attributes = [
-            (1, 188743731, "epos"),
+            (1, 188743731, "jira_task"),
         ]
         operations.insert_extended_attributes_into_db(self.conn, attributes)
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM omniplan_task_extended_attributes")
         result = cursor.fetchall()
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0][2], "epos")
+        self.assertEqual(result[0][2], "jira_task")
 
     def test_insert_predecessor_links_into_db(self):
         self.conn.execute('INSERT INTO omniplan_tasks (UID, Name) VALUES (1, "Task 1")')

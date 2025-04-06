@@ -276,18 +276,18 @@ def create_predecessor_links_table(cursor):
     )
 
 
-def get_parent_task(conn, epos):
+def get_parent_task(conn, jira_task):
     """
-    Retrieves the parent task based on the epos parameter from the
+    Retrieves the parent task based on the jira_task parameter from the
     omniplan_task_extended_attributes table.
 
     Args:
-        epos (str): The epos number to search for.
+        jira_task (str): The jira_task number to search for.
         conn (sqlite3.Connection): The SQLite database connection.
 
     Returns:
         tuple: The parent task UID, name, notes, start date, finish date,
-        percent complete, work, and epos value, or None if not found.
+        percent complete, work, and jira_task value, or None if not found.
     """
     cursor = conn.cursor()
     cursor.execute(
@@ -298,12 +298,24 @@ def get_parent_task(conn, epos):
         JOIN omniplan_task_extended_attributes tea ON t.UID = tea.TaskUID
         WHERE tea.FieldID = 188743731 AND LOWER(tea.Value) = LOWER(?)
         """,
-        (epos,),
+        (jira_task,),
     )
     result = cursor.fetchone()
     if result:
-        uid, name, notes, start, finish, percent_complete, work, epos_value = result
-        start_date = datetime.fromisoformat(start).date() if start else "N/A"
+        (
+            uid,
+            name,
+            notes,
+            start,
+            finish,
+            percent_complete,
+            work,
+            jira_task_value,
+        ) = result
+        try:
+            start_date = datetime.fromisoformat(start).date() if start else "N/A"
+        except ValueError:
+            start_date = "N/A"
         finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
         return (
             uid,
@@ -313,7 +325,7 @@ def get_parent_task(conn, epos):
             finish_date,
             percent_complete,
             work,
-            epos_value,
+            jira_task_value,
         )
     return None
 
@@ -332,7 +344,7 @@ def get_sub_tasks(conn, parent_uid):
     cursor = conn.cursor()
     cursor.execute(
         """
-        SELECT UID, Name, Milestone, OutlineLevel, Start
+        SELECT UID, Name, Milestone, OutlineLevel, Start, PercentComplete
         FROM omniplan_tasks
         WHERE ParentUID = ?
         """,
@@ -352,15 +364,15 @@ def get_sub_tasks(conn, parent_uid):
     return sub_tasks, predecessor_links
 
 
-def write_report_header(report_file, epos, task_name, parent_note):
+def write_report_header(report_file, jira_task, task_name, parent_note):
     """
     Writes the header for the report.
 
     Args:
         report_file (file object): The file object to write to.
-        epos (str): The note string used for the report.
+        jira_task (str): The note string used for the report.
     """
-    report_file.write(f"Description for {epos.upper()} - {task_name}\n\n")
+    report_file.write(f"Description for {jira_task.upper()} - {task_name}\n\n")
     report_file.write(f"Scope: \n{parent_note}\n\n")
     report_file.write("DoD:\n")
 

@@ -13,10 +13,12 @@ logger = logging.getLogger(__name__)
 def sync_omniplan_with_jira(conn, bearer_token, dry_run=False):
     """
     Synchronizes tasks from OmniPlan with Jira by fetching tasks
-    withOutlineLevel=1 and 2,
+    with OutlineLevel=1 and 2,
     filtering out tasks without a Jira number, sorting them by Jira number,
     and printing their details.
     Updates all tasks in the list in Jira unless dry_run is True.
+    For OutlineLevel=1 we update start-date and finish-date
+    For OutlineLevel=2 we update start-date, finish-date, estimate, and work-log.
 
     Args:
         conn (sqlite3.Connection): The SQLite database connection.
