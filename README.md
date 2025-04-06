@@ -64,7 +64,7 @@ DB_FILE_PATH=<location to store the sqlite db file>
    ```sh
    python -m omniplan_exporter.sync --db-path resources/omniplan.db --bearer-token YOUR_JIRA_TOKEN
    ```
-4. **Run Report Scripts**: Execute the desired report script from the root of the project to generate a report.
+4. **Run Milestones Report**: Execute the desired report script from the root of the project to generate a report.
    ```sh
    python reports/report_milestones_top_level.py
    ```
@@ -76,6 +76,16 @@ DB_FILE_PATH=<location to store the sqlite db file>
 6. **Diff Report**: Generates a comparison report between tasks in Jira and OmniPlan, highlighting mismatches and tasks exclusive to one system.
    ```sh
    python reports/report_diff_jira_omniplan.py <jira_task> <bearer_token>
+   ```
+
+7. **Task Assignments and Status Report**: Generates a report summarizing task assignments and their statuses.
+   ```sh
+   python reports/report_task_assignments_and_status.py <jira_task>
+   ```
+
+8. **Jira Task Description Report**: Generates a detailed report for a task, including nested sub-tasks.
+   ```sh
+   python reports/report_jira_task_description.py <jira_task> [output_dir]
    ```
 
 ## Running Tests

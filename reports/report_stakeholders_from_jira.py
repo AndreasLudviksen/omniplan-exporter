@@ -47,37 +47,54 @@ def generate_stakeholders_report(bearer_token, conn, output_dir="resources/repor
                 issue_details = fetch_jira_issue(
                     jira_number, JIRA_BASE_URL, bearer_token
                 )
-                raw_allocation = (
-                    issue_details.get("fields", {}).get("customfield_27860", "N/A")
-                    if issue_details
-                    else "N/A"
+                raw_allocation = issue_details.get("fields", {}).get(
+                    "customfield_27860"
                 )
-                if raw_allocation != "N/A":
-                    allocation_lines = raw_allocation.splitlines()
+                if raw_allocation:
+                    allocation_lines = str(raw_allocation).splitlines()
                     allocation_data = [
                         line.split(" - ")[:2] for line in allocation_lines
                     ]
                 else:
                     allocation_data = []
 
-                # Prefix task name with Jira issue number and make it a link
-                name = f"[{jira_number} - {name}]({JIRA_BASE_URL}/browse/{jira_number})"
+                plain_name = (
+                    name.strip() if name else "Unnamed Task"
+                )  # Ensure plain_name is valid
+                formatted_name = (
+                    f"[{jira_number} - {plain_name}]"
+                    f"({JIRA_BASE_URL}/browse/{jira_number})"
+                )
 
                 # Add start date in the same cell with a line break.
                 # Only include the date part.
                 start_date = None
                 if start:
                     start_date = start.split(" ")[0]  # Extract only the date part
-                    name += f"<br>Oppstart: {start_date}"
+                    formatted_name += f"<br>Oppstart: {start_date}"
+
+                # Log the task details for debugging
+                logger.debug(
+                    f"Processing task: plain_name='{plain_name}', "
+                    f"formatted_name='{formatted_name}', start_date='{start_date}'"
+                )
+
+                if not plain_name:
+                    logger.warning(f"Task with UID {uid} has an empty name. Skipping.")
+                    continue
 
                 for navn, rolle in allocation_data:
                     all_names.add(navn)
-                    if name not in pivot_data:
-                        pivot_data[name] = {}
-                    pivot_data[name][navn] = rolle
+                    if plain_name not in pivot_data:
+                        pivot_data[plain_name] = {}
+                    pivot_data[plain_name][navn] = rolle
 
                 # Append task data for sorting
-                task_data.append((start_date, name, pivot_data[name]))
+                task_data.append((start_date, formatted_name, pivot_data[plain_name]))
+
+        # Log the collected task data for debugging
+        logger.debug(f"Collected task data: {task_data}")
+        logger.debug(f"All names: {all_names}")
 
         # Sort tasks by start_date (None values will be last)
         task_data.sort(key=lambda x: (x[0] is None, x[0]))
