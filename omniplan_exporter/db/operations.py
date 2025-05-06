@@ -608,3 +608,11 @@ def get_assignments_by_uid(conn, task_uid):
     return [
         (resource_name, units) for resource_uid, units, resource_name in assignments
     ]
+
+
+def fetch_task_name_by_uid(conn, task_uid):
+    # Modified function: Only fetch the 'Name' column from omniplan_tasks
+    cursor = conn.cursor()
+    cursor.execute("SELECT Name FROM omniplan_tasks WHERE UID = ?", (task_uid,))
+    result = cursor.fetchone()
+    return result[0] if result else None

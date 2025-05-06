@@ -12,7 +12,8 @@ def fetch_jira_issue(issue_key, jira_base_url, bearer_token):
 
     Args:
         issue_key (str): The Jira issue key (e.g., "PROJECT-123").
-        jira_base_url (str): The base URL of the Jira instance.
+        jira_base_url (str): The base URL of the Jira instance
+            (e.g., "https://your-jira-instance.atlassian.net").
         bearer_token (str): The bearer token for authentication.
 
     Returns:
@@ -157,3 +158,56 @@ def update_jira_issue(
         "status": "success",
         "message": "Issue updated, worklog emptied, and new worklog added",
     }
+
+
+def create_jira_task(
+    summary,
+    description,
+    issue_type="Forbedring",
+    jira_base_url=JIRA_BASE_URL,
+    bearer_token=None,
+    epic_link=None,
+    epic_name=None,
+):
+    """
+    Creates a new Jira task in the MUP project.
+
+    Args:
+        summary (str): The summary of the task.
+        description (str): The description of the task.
+        issue_type (str): The type of the issue.
+        jira_base_url (str): The base URL of the Jira instance.
+        bearer_token (str): The bearer token for authentication.
+        epic_link (str, optional): The Epic Link to assign to the task.
+
+    Returns:
+        dict: The JSON response containing the created issue details,
+        or None if the request fails.
+    """
+    url = f"{jira_base_url}/rest/api/2/issue"
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "fields": {
+            "project": {"key": "MUP"},
+            "summary": summary,
+            "description": description,
+            "issuetype": {"name": issue_type},
+        }
+    }
+    if epic_link:
+        payload["fields"]["customfield_10761"] = epic_link
+
+    if epic_name:
+        payload["fields"]["customfield_10764"] = epic_name
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        logger.info(f"Successfully created Jira task in MUP project: {response.json()}")
+        return response.json()
+    except requests.RequestException as e:
+        logger.error(f"Failed to create Jira task in MUP project: {e}")
+        return None

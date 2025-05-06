@@ -27,8 +27,8 @@ def generate_milestones_top_level_report(db_path, output_dir="resources/reports"
         report_filename = os.path.join(output_dir, "milestones-top-level.md")
         with open(report_filename, "w") as report_file:
             report_file.write("# Milepæler Modernisert Utvikleropplevelse\n\n")
-            report_file.write("| Milepæl | Dato | Forutsetter | Muliggjør |\n")
-            report_file.write("|-----------|------|-------------|-----------|\n")
+            report_file.write("| Milepæl | Forutsetter | Muliggjør | Dato       |\n")
+            report_file.write("|-----------|-------------|-----------|------------|\n")
             for milestone in milestones:
                 uid, name, finish, _, _, _ = milestone
                 finish_date = datetime.fromisoformat(finish).date() if finish else "N/A"
@@ -49,8 +49,8 @@ def generate_milestones_top_level_report(db_path, output_dir="resources/reports"
 
                 report_file.write(
                     (
-                        f"| {name} | {finish_date} | {dependencies_names} | "
-                        f"{dependents_names} |\n"
+                        f"| {name} | {dependencies_names} | {dependents_names} | "
+                        f"{finish_date} |\n"
                     )
                 )
 
