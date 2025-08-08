@@ -14,6 +14,7 @@ The project offers synchronization of Jira tasks, and producese reports from the
     - `validation.py`: Validation helpers (e.g., date, duration).
     - `conversions.py`: Conversion utilities (e.g., ISO 8601 to Jira format).
   - `sync.py`: Synchronization logic for syncing OmniPlan tasks with Jira.
+  - `create_jira_epic.py`: Script for creating Jira epics and subtasks for a given OmniPlan task UID.
 - `reports/`: Directory containing scripts for generating reports from the database.
   - `report_jira_task_description.py`: Generates a detailed report for a task including nested sub-tasks.
   - `report_milestones_top_level.py`: Generates a report listing top-level milestones.
@@ -27,6 +28,7 @@ The project offers synchronization of Jira tasks, and producese reports from the
   - `test_integration.py`: Tests for Jira integration.
 - `requirements.txt`: Lists the dependencies required for the project.
 - `.env`: Environment variables file for configuration.
+- `Makefile`: Contains commands for formatting, linting, and other development tasks.
 
 ## How It Works
 
@@ -62,35 +64,33 @@ DB_FILE_PATH=<location to store the sqlite db file>
    ```
 3. **Synchronize with Jira**: Use the `sync.py` script to synchronize tasks with Jira.
    ```sh
-   python -m omniplan_exporter.sync --db-path resources/omniplan.db --bearer-token YOUR_JIRA_TOKEN
+   python -m omniplan_exporter.sync --db-path resources/omniplan.db --bearer-token YOUR_JIRA_TOKEN [--dry-run]
    ```
-4. **Create Jira Epic and Subtasks**: Creates a Jira epic and its subtasks for a given OmniPlan task UID.
+4. **Create Jira Epic and Subtasks**: Use the `create_jira_epic.py` script to create a Jira epic and its subtasks for a given OmniPlan task UID.
    ```sh
    python -m omniplan_exporter.create_jira_epic --db-path <db_path> --omniplan-uid <task_uid> --bearer-token <jira_token> [--dry-run]
    ```
-5. **Run Milestones Report**: Execute the desired report script from the root of the project to generate a report.
-   ```sh
-   python reports/report_milestones_top_level.py
-   ```
-6. **Stakeholders Report**: Generates a pivot table of stakeholders for tasks with outline level 2, filtered by specific parent UIDs. The report includes task names, stakeholder names, and roles.
-   ```sh
-   python reports/report_stakeholders_from_jira.py <bearer_token>
-   ```
-
-7. **Diff Report**: Generates a comparison report between tasks in Jira and OmniPlan, highlighting mismatches and tasks exclusive to one system.
-   ```sh
-   python reports/report_diff_jira_omniplan.py <jira_task> <bearer_token>
-   ```
-
-8. **Task Assignments and Status Report**: Generates a report summarizing task assignments and their statuses.
-   ```sh
-   python reports/report_task_assignments_and_status.py <jira_task>
-   ```
-
-9. **Jira Task Description Report**: Generates a detailed report for a task, including nested sub-tasks.
-   ```sh
-   python reports/report_jira_task_description.py <jira_task> [output_dir]
-   ```
+5. **Generate Reports**: Execute the desired report script from the `reports/` directory to generate a report. Examples:
+   - **Milestones Report**:
+     ```sh
+     python reports/report_milestones_top_level.py
+     ```
+   - **Stakeholders Report**:
+     ```sh
+     python reports/report_stakeholders_from_jira.py <bearer_token>
+     ```
+   - **Diff Report**:
+     ```sh
+     python reports/report_diff_jira_omniplan.py <jira_task> <bearer_token>
+     ```
+   - **Task Assignments and Status Report**:
+     ```sh
+     python reports/report_task_assignments_and_status.py <jira_task>
+     ```
+   - **Jira Task Description Report**:
+     ```sh
+     python reports/report_jira_task_description.py <jira_task> [output_dir]
+     ```
 
 ## Running Tests
 
