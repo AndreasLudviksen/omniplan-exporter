@@ -79,10 +79,13 @@ class TestDBOperations(unittest.TestCase):
 
     def test_get_parent_task(self):
         self.conn.execute(
-            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish) VALUES (1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00")'
+            'INSERT INTO omniplan_tasks '
+            '(UID, Name, Notes, Start, Finish) VALUES '
+            '(1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00")'
         )
         self.conn.execute(
-            'INSERT INTO omniplan_task_extended_attributes (TaskUID, FieldID, Value) VALUES (1, 188743731, "jira_task")'
+            'INSERT INTO omniplan_task_extended_attributes '
+            '(TaskUID, FieldID, Value) VALUES (1, 188743731, "jira_task")'
         )
         result = operations.get_parent_task(self.conn, "jira_task")
         self.assertIsNotNone(result)
@@ -90,10 +93,15 @@ class TestDBOperations(unittest.TestCase):
 
     def test_get_sub_tasks(self):
         self.conn.execute(
-            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish, PercentComplete) VALUES (1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 50)'
+            'INSERT INTO omniplan_tasks '
+            '(UID, Name, Notes, Start, Finish, PercentComplete) VALUES '
+            '(1, "Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 50)'
         )
         self.conn.execute(
-            'INSERT INTO omniplan_tasks (UID, Name, Notes, Start, Finish, ParentUID, Milestone, PercentComplete) VALUES (2, "Sub Task 1", "Notes", "2023-01-01T00:00:00", "2023-01-02T00:00:00", 1, 0, 75)'
+            'INSERT INTO omniplan_tasks '
+            '(UID, Name, Notes, Start, Finish, ParentUID, Milestone, PercentComplete) '
+            'VALUES (2, "Sub Task 1", "Notes", "2023-01-01T00:00:00", '
+            '"2023-01-02T00:00:00", 1, 0, 75)'
         )
         sub_tasks, _ = operations.get_sub_tasks(self.conn, 1)
         self.assertEqual(len(sub_tasks), 1)
@@ -113,7 +121,8 @@ class TestDBOperations(unittest.TestCase):
         cursor = self.conn.cursor()
         operations.create_extended_attributes_table(cursor)
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='omniplan_task_extended_attributes'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='omniplan_task_extended_attributes'"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)
@@ -122,7 +131,8 @@ class TestDBOperations(unittest.TestCase):
         cursor = self.conn.cursor()
         operations.create_predecessor_links_table(cursor)
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='omniplan_predecessor_links'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='omniplan_predecessor_links'"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)
@@ -131,7 +141,8 @@ class TestDBOperations(unittest.TestCase):
         cursor = self.conn.cursor()
         operations.create_resources_table(cursor)
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='omniplan_resources'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='omniplan_resources'"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)
@@ -140,7 +151,8 @@ class TestDBOperations(unittest.TestCase):
         cursor = self.conn.cursor()
         operations.create_assignments_table(cursor)
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='omniplan_assignments'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='omniplan_assignments'"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)
@@ -187,7 +199,8 @@ class TestDBOperations(unittest.TestCase):
             'INSERT INTO omniplan_resources (UID, Name) VALUES (1, "Resource 1")'
         )
         self.conn.execute(
-            "INSERT INTO omniplan_assignments (UID, TaskUID, ResourceUID, Units) VALUES (1, 1, 1, 1.0)"
+            "INSERT INTO omniplan_assignments "
+            "(UID, TaskUID, ResourceUID, Units) VALUES (1, 1, 1, 1.0)"
         )
         result = operations.get_assignments_by_uid(self.conn, 1)
         self.assertIsNotNone(result)
