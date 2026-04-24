@@ -112,7 +112,8 @@ class TestDBOperations(unittest.TestCase):
         cursor = self.conn.cursor()
         operations.create_tasks_table(cursor)
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='omniplan_tasks'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='omniplan_tasks'"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)

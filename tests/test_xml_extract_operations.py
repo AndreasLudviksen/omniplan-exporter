@@ -1,8 +1,6 @@
 import unittest
 import xml.etree.ElementTree as ET
 import sqlite3
-import sys
-import os
 
 from omniplan_exporter.xml import extract_operations
 from omniplan_exporter.db import operations
